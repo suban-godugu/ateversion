@@ -117,6 +117,45 @@ body {
   color: var(--muted-2);
 }
 
+/* Brighter drill-down / popup surfaces */
+.vl-popup {
+  border: 1px solid rgba(107, 193, 242, 0.35);
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse 90% 55% at 10% 0%, rgba(107, 193, 242, 0.22), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 95% 10%, rgba(110, 231, 168, 0.12), transparent 50%),
+    linear-gradient(180deg, #152033 0%, #0e1624 48%, #0b121c 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 28px 90px rgba(0, 0, 0, 0.6);
+}
+
+.vl-popup-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9ec9ef;
+}
+
+.vl-popup-tile {
+  border: 1px solid rgba(107, 193, 242, 0.28);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(107, 193, 242, 0.14), rgba(21, 32, 51, 0.92));
+}
+
+.vl-popup-tile-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #b7d4f0;
+}
+
+.vl-popup-tile-value {
+  color: #f5f9ff;
+}
+
 .vl-field {
   border: 1px solid var(--line);
   border-radius: var(--radius);

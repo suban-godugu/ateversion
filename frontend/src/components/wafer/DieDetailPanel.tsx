@@ -14,17 +14,20 @@ export function DieDetailPanel({
 }) {
   return (
     <DetailPopup eyebrow="Die Analysis" title={die.die_id} onClose={onClose}>
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-4 flex items-center gap-2.5">
         <span
-          className="inline-block h-3 w-3 rounded-[3px]"
+          className="inline-block h-3.5 w-3.5 rounded-[3px]"
           style={{ background: DIE_RESULT_COLORS[die.result] }}
         />
-        <span className="font-mono text-[14px] font-semibold uppercase tracking-[0.08em] text-[var(--text)]">
+        <span
+          className="font-mono text-[15px] font-semibold uppercase tracking-[0.1em]"
+          style={{ color: DIE_RESULT_COLORS[die.result] }}
+        >
           {die.result}
         </span>
       </div>
 
-      <dl className="grid grid-cols-1 gap-y-2.5 text-[12px] sm:grid-cols-2 sm:gap-x-6">
+      <dl className="grid grid-cols-1 gap-2.5 text-[12px] sm:grid-cols-2">
         <Row label="Die ID" value={die.die_id} />
         <Row label="Wafer" value={die.wafer_id} />
         <Row label="Row" value={String(die.row)} />
@@ -50,9 +53,9 @@ export function DieDetailPanel({
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[6px] border border-[var(--line)] bg-[var(--panel-2)] px-3 py-2">
-      <dt className="text-[9px] uppercase tracking-[0.08em] text-[var(--muted-2)]">{label}</dt>
-      <dd className="mt-0.5 font-mono text-[12px] text-[var(--text)]">{value}</dd>
+    <div className="vl-popup-tile px-3 py-2.5">
+      <dt className="vl-popup-tile-label">{label}</dt>
+      <dd className="vl-popup-tile-value mt-1 font-mono text-[13px] font-semibold">{value}</dd>
     </div>
   );
 }

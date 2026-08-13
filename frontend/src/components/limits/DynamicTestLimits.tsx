@@ -250,9 +250,11 @@ function Tile({
   accentClass?: string;
 }) {
   return (
-    <div className="rounded-[6px] border border-[var(--line)] bg-[var(--panel-2)] px-3 py-2">
-      <div className="text-[9px] uppercase tracking-[0.08em] text-[var(--muted-2)]">{label}</div>
-      <div className={`font-mono text-[13px] font-semibold ${accentClass ?? "text-[var(--text)]"}`}>
+    <div className="vl-popup-tile px-3 py-2.5">
+      <div className="vl-popup-tile-label">{label}</div>
+      <div
+        className={`vl-popup-tile-value mt-1 font-mono text-[14px] font-semibold ${accentClass ?? ""}`}
+      >
         {value}
       </div>
     </div>
@@ -261,9 +263,9 @@ function Tile({
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <div className="text-[9px] uppercase tracking-[0.08em] text-[var(--muted-2)]">{label}</div>
-      <div className="mt-0.5 font-mono text-[11px] text-[var(--text)]">{value}</div>
+    <div className="vl-popup-tile px-3 py-2">
+      <div className="vl-popup-tile-label">{label}</div>
+      <div className="vl-popup-tile-value mt-0.5 font-mono text-[12px] font-semibold">{value}</div>
     </div>
   );
 }
