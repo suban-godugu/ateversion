@@ -1,5 +1,6 @@
 "use client";
 
+import { DetailPopup } from "@/components/common/DetailPopup";
 import { formatTime } from "@/lib/utils";
 import type { TestEvent } from "@/types/events";
 import { SEVERITY_STYLES } from "@/types/events";
@@ -12,52 +13,37 @@ interface Props {
 }
 
 export function EventDetails({ event, onClose, onAcknowledge, acknowledging }: Props) {
-  if (!event) {
-    return (
-      <div className="flex h-full min-h-[220px] flex-col items-center justify-center rounded border border-dashed border-[var(--line)] bg-[var(--panel-2)] px-4 text-center text-[11.5px] text-[var(--muted)]">
-        Select an event to inspect payload, lineage, and acknowledge.
-      </div>
-    );
-  }
+  if (!event) return null;
 
   const style = SEVERITY_STYLES[event.severity];
 
   return (
-    <div className="flex h-full min-h-[220px] flex-col rounded border border-[var(--line)] bg-[var(--panel-2)] p-3.5">
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--muted-2)]">
-            Event detail
-          </div>
-          <div className="mt-1 font-mono text-[11px] text-[var(--muted)]">{event.event_id}</div>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-[11px] text-[var(--muted-2)] hover:text-[var(--text)]"
-        >
-          Close
-        </button>
-      </div>
+    <DetailPopup
+      eyebrow="Test Floor Event"
+      title={event.event_type.replace(/_/g, " ")}
+      onClose={onClose}
+      wide
+    >
+      <div className="mb-1 font-mono text-[11px] text-[#9ec9ef]">{event.event_id}</div>
 
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <span
-          className="rounded px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.04em]"
+          className="rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em]"
           style={{ color: style.fg, background: style.bg }}
         >
           {event.severity}
         </span>
-        <span className="rounded bg-[var(--line)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--muted)]">
+        <span className="rounded border border-[rgba(107,193,242,0.35)] bg-[rgba(107,193,242,0.12)] px-2 py-0.5 font-mono text-[10px] text-[#c9e6ff]">
           {event.event_type}
         </span>
-        <span className="font-mono text-[10px] text-[var(--muted-2)]">
+        <span className="font-mono text-[11px] text-[#b7d4f0]">
           seq {event.sequence_number}
         </span>
       </div>
 
-      <p className="mb-3 text-[12px] leading-relaxed text-[var(--text)]">{event.message}</p>
+      <p className="mb-4 text-[13px] leading-relaxed text-[#f2f7fc]">{event.message}</p>
 
-      <dl className="mb-3 grid grid-cols-2 gap-x-3 gap-y-2 text-[11px]">
+      <div className="mb-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
         <Field label="Timestamp" value={formatTime(event.timestamp)} />
         <Field label="Source" value={event.source} />
         <Field label="Tester" value={event.tester_id} />
@@ -74,14 +60,13 @@ export function EventDetails({ event, onClose, onAcknowledge, acknowledging }: P
                 }`
               : "open"
           }
+          accent={event.acknowledged ? "var(--green)" : "var(--amber)"}
         />
-      </dl>
+      </div>
 
-      <div className="mb-3 flex-1 overflow-auto rounded border border-[var(--line)] bg-[var(--bg)] p-2">
-        <div className="mb-1 text-[10px] uppercase tracking-[0.08em] text-[var(--muted-2)]">
-          Metadata
-        </div>
-        <pre className="whitespace-pre-wrap break-all font-mono text-[10px] leading-relaxed text-[var(--muted)]">
+      <div className="vl-popup-label mb-2">Metadata</div>
+      <div className="vl-popup-tile mb-4 p-3">
+        <pre className="whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed text-[#e4f0fb]">
           {JSON.stringify(event.metadata ?? {}, null, 2)}
         </pre>
       </div>
@@ -90,19 +75,32 @@ export function EventDetails({ event, onClose, onAcknowledge, acknowledging }: P
         type="button"
         disabled={event.acknowledged || acknowledging}
         onClick={() => onAcknowledge(event.event_id)}
-        className="rounded border border-[var(--cyan)] px-3 py-1.5 text-[11px] font-semibold text-[var(--cyan)] disabled:opacity-40"
+        className="rounded-[6px] border border-[rgba(107,193,242,0.55)] bg-[rgba(107,193,242,0.14)] px-3 py-2 text-[12px] font-semibold text-[#c9e6ff] transition-colors hover:border-[var(--cyan)] hover:text-white disabled:opacity-40"
       >
         {event.acknowledged ? "Acknowledged" : acknowledging ? "Acknowledging…" : "Acknowledge"}
       </button>
-    </div>
+    </DetailPopup>
   );
 }
 
-function Field({ label, value }: { label: string; value: string | null | undefined }) {
+function Field({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string | null | undefined;
+  accent?: string;
+}) {
   return (
-    <div>
-      <dt className="text-[9.5px] uppercase tracking-[0.08em] text-[var(--muted-2)]">{label}</dt>
-      <dd className="mt-0.5 font-mono text-[11px] text-[var(--text)]">{value ?? "—"}</dd>
+    <div className="vl-popup-tile px-3 py-2.5">
+      <dt className="vl-popup-tile-label">{label}</dt>
+      <dd
+        className="vl-popup-tile-value mt-1 font-mono text-[12px] font-semibold"
+        style={accent ? { color: accent } : undefined}
+      >
+        {value ?? "—"}
+      </dd>
     </div>
   );
 }

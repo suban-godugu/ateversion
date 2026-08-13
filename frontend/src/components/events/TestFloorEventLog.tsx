@@ -90,45 +90,46 @@ export function TestFloorEventLog() {
 
       <EventFilters filters={filters} options={filterOptions} onChange={setFilters} />
 
-      <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[1.45fr_1fr]">
-        <div className="min-h-[260px]">
-          {isLoading && events.length === 0 ? (
-            <LoadingState />
-          ) : isError && events.length === 0 ? (
-            <ErrorState
-              message="Unable to load historical floor events from the API."
-              onRetry={() => void refetch()}
-            />
-          ) : events.length === 0 ? (
-            <EmptyState message="No events match the current filters." />
-          ) : (
-            <div className="max-h-[340px] overflow-y-auto rounded border border-[var(--line)]">
-              <div className="sticky top-0 grid grid-cols-[72px_72px_88px_1fr_64px] gap-2 border-b border-[var(--line)] bg-[var(--panel)] px-2.5 py-1.5 text-[9.5px] uppercase tracking-[0.08em] text-[var(--muted-2)]">
-                <span>Time</span>
-                <span>Sev</span>
-                <span>Type</span>
-                <span>Message</span>
-                <span>Ack</span>
-              </div>
-              {events.map((ev) => (
-                <EventRow
-                  key={ev.event_id}
-                  event={ev}
-                  selected={ev.event_id === selectedId}
-                  onSelect={() => setSelectedId(ev.event_id)}
-                />
-              ))}
+      <div className="mt-3 min-h-[260px]">
+        {isLoading && events.length === 0 ? (
+          <LoadingState />
+        ) : isError && events.length === 0 ? (
+          <ErrorState
+            message="Unable to load historical floor events from the API."
+            onRetry={() => void refetch()}
+          />
+        ) : events.length === 0 ? (
+          <EmptyState message="No events match the current filters." />
+        ) : (
+          <div className="max-h-[420px] overflow-y-auto rounded border border-[var(--line)]">
+            <div className="sticky top-0 grid grid-cols-[72px_72px_88px_1fr_64px] gap-2 border-b border-[var(--line)] bg-[var(--panel)] px-2.5 py-1.5 text-[9.5px] uppercase tracking-[0.08em] text-[var(--muted-2)]">
+              <span>Time</span>
+              <span>Sev</span>
+              <span>Type</span>
+              <span>Message</span>
+              <span>Ack</span>
             </div>
-          )}
-        </div>
-
-        <EventDetails
-          event={selected}
-          onClose={() => setSelectedId(null)}
-          onAcknowledge={acknowledge}
-          acknowledging={acknowledging}
-        />
+            {events.map((ev) => (
+              <EventRow
+                key={ev.event_id}
+                event={ev}
+                selected={ev.event_id === selectedId}
+                onSelect={() => setSelectedId(ev.event_id)}
+              />
+            ))}
+          </div>
+        )}
+        <p className="mt-2 text-[11px] text-[var(--muted-2)]">
+          Click a row to open the event drill-down popup.
+        </p>
       </div>
+
+      <EventDetails
+        event={selected}
+        onClose={() => setSelectedId(null)}
+        onAcknowledge={acknowledge}
+        acknowledging={acknowledging}
+      />
     </section>
   );
 }
