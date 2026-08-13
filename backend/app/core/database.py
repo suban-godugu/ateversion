@@ -38,9 +38,25 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-async def init_db() -> None:
+async def reset_schema() -> None:
+    """Drop and recreate public schema (Postgres). Used for one-time Render boots."""
+    from sqlalchemy import text
+
+    if settings.database_url.startswith("sqlite"):
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        return
+    async with engine.begin() as conn:
+        await conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+        await conn.execute(text("CREATE SCHEMA public"))
+        await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
+
+
+async def init_db(*, reset: bool = False) -> None:
     """Create schema from SQLAlchemy metadata (Alembic is source of truth for upgrades)."""
     from app import models  # noqa: F401
 
+    if reset:
+        await reset_schema()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

@@ -19,7 +19,9 @@ from app.websocket.gateway import router as ws_router
 async def lifespan(_: FastAPI):
     settings = get_settings()
     setup_logging(settings.log_level)
-    await init_db()
+    # One-time: set RESET_SCHEMA_ON_BOOT=true when reusing an incompatible Postgres.
+    reset = os.environ.get("RESET_SCHEMA_ON_BOOT", "").lower() in {"1", "true", "yes"}
+    await init_db(reset=reset)
     async with SessionLocal() as db:
         await ensure_seed_users(db)
 
