@@ -75,7 +75,7 @@ export function DashboardShell() {
           <h1 className="font-display m-0 text-[34px] font-bold uppercase tracking-[0.06em] text-[var(--text)]">
             Verilumen
           </h1>
-          <div className="mt-1 text-[11px] font-medium tracking-[0.06em] text-[var(--muted)]">
+          <div className="mt-1.5 text-[16px] font-medium tracking-[0.04em] text-[var(--muted)]">
             ATE intelligence
           </div>
         </div>
