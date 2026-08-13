@@ -48,11 +48,9 @@ export function KpiDetailDrawer({
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // Do not lock body scroll — user can scroll the dashboard behind the popup.
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
     };
   }, [onClose]);
 
@@ -60,20 +58,20 @@ export function KpiDetailDrawer({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 sm:p-6"
-      onClick={onClose}
+      className="pointer-events-none fixed inset-0 z-[80] flex items-start justify-center p-4 pt-[8vh] sm:p-6 sm:pt-[10vh]"
       role="presentation"
     >
+      {/* Visual dim only — pointer-events none so wheel/scroll reaches the page */}
+      <div className="pointer-events-none fixed inset-0 bg-black/50" aria-hidden />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={kpi?.name ? `${kpi.name} KPI detail` : "KPI detail"}
-        className="flex max-h-[min(90vh,860px)] w-full max-w-[720px] flex-col overflow-hidden rounded-[8px] border border-[var(--line)] bg-[var(--panel)] shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
+        className="pointer-events-auto flex max-h-[min(90vh,860px)] w-full max-w-[720px] flex-col overflow-hidden rounded-[8px] border border-[var(--line)] bg-[var(--panel)] shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
         style={{
           background:
             "linear-gradient(180deg, rgba(255,255,255,0.03), transparent 36%), var(--panel)",
         }}
-        onClick={(e) => e.stopPropagation()}
       >
         <header className="flex shrink-0 items-start justify-between border-b border-[var(--line)] px-5 py-4">
           <div>
