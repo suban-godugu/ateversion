@@ -13,8 +13,12 @@ def normalize_database_url(url: str) -> str:
         url = "postgresql://" + url[len("postgres://") :]
     if url.startswith("postgresql://") and "+asyncpg" not in url and "+psycopg" not in url:
         url = "postgresql+asyncpg://" + url[len("postgresql://") :]
-    url = url.replace("sslmode=require", "ssl=require")
-    url = url.replace("sslmode=prefer", "ssl=prefer")
+    # Prefer connect_args ssl=True; strip query flags that confuse asyncpg
+    for token in ("?sslmode=require", "&sslmode=require", "?ssl=require", "&ssl=require",
+                  "?sslmode=prefer", "&sslmode=prefer"):
+        url = url.replace(token, "")
+    if url.endswith("?") or url.endswith("&"):
+        url = url[:-1]
     return url
 
 

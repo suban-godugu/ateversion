@@ -3,9 +3,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PORT=7860 \
-    REDIS_URL=memory:// \
-    CORS_ORIGINS=* \
+    PORT=8000 \
     AUTH_DISABLED=false \
     LOG_LEVEL=INFO
 
@@ -25,10 +23,8 @@ COPY alembic ./alembic
 COPY alembic.ini .
 COPY scripts ./scripts
 
-# Hugging Face Spaces expects 7860
-EXPOSE 7860
+# Render injects PORT; Hugging Face Spaces often uses 7860
+EXPOSE 8000 7860
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
-  CMD curl -fsS http://127.0.0.1:${PORT:-7860}/api/health || exit 1
-
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860} --workers 1"]
+# Do not use Docker HEALTHCHECK here — Render owns health checks via /api/health
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]

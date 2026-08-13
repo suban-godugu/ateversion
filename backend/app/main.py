@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,20 +22,19 @@ async def lifespan(_: FastAPI):
     await init_db()
     async with SessionLocal() as db:
         await ensure_seed_users(db)
-    # Best-effort demo seed on empty Hugging Face Space
-    try:
-        from sqlalchemy import func, select
 
-        from app.models.entities import Wafer
-
-        async with SessionLocal() as db:
-            count = await db.scalar(select(func.count()).select_from(Wafer))
-        if not count:
+    # Full demo seed only when explicitly requested (avoids Render boot crashes)
+    if os.environ.get("RUN_SEED_ON_BOOT", "").lower() in {"1", "true", "yes"}:
+        try:
             from app.ingestion.seed import seed
 
             await seed()
-    except Exception:
-        pass
+        except Exception as exc:
+            setup_logging(settings.log_level)
+            from app.core.logging import get_logger
+
+            get_logger("startup").warning("seed_on_boot_failed", extra={"error": str(exc)})
+
     await ping_redis()
     yield
     await close_redis()
@@ -59,7 +59,6 @@ def create_app() -> FastAPI:
 
     @app.get("/")
     async def root():
-        # Hugging Face Space iframe / health landing
         return RedirectResponse(url="/docs")
 
     return app
