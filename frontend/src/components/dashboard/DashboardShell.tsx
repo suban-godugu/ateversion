@@ -72,12 +72,12 @@ export function DashboardShell() {
 
       <header className="mb-[26px] flex flex-wrap items-end justify-between gap-6 border-b border-[var(--line)] pb-5">
         <div>
-          <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-[var(--muted-2)]">
-            Semiconductor Test Floor · AI Optimization Layer
-          </div>
-          <h1 className="font-display m-0 text-[28px] font-bold tracking-[-0.01em]">
-            Wafer Yield <span className="text-[var(--green)]">Intelligence</span>
+          <h1 className="font-display m-0 text-[28px] font-bold uppercase tracking-[0.06em]">
+            Veri<span className="text-[var(--green)]">lumen</span>
           </h1>
+          <div className="mt-1.5 text-[13px] font-medium tracking-[0.04em] text-[var(--muted)]">
+            ATE intelligence
+          </div>
         </div>
         <div className="flex flex-wrap items-end gap-6">
           <HeaderStats data={summary?.header ?? null} />

@@ -91,9 +91,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="font-display mb-2 text-2xl font-bold">
-        Wafer Yield <span className="text-[var(--green)]">Intelligence</span>
+      <h1 className="font-display mb-1 text-2xl font-bold uppercase tracking-[0.06em]">
+        Veri<span className="text-[var(--green)]">lumen</span>
       </h1>
+      <div className="mb-2 text-[13px] font-medium tracking-[0.04em] text-[var(--muted)]">
+        ATE intelligence
+      </div>
       <p className="mb-6 text-[12px] text-[var(--muted)]">
         Sign in with an authorized engineering role. Unauthorized API / WebSocket
         access is rejected.

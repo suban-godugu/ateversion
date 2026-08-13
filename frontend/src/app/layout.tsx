@@ -3,8 +3,8 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Wafer Yield Intelligence — Test Optimization Floor",
-  description: "Real-time semiconductor test-floor yield and optimization dashboard",
+  title: "Verilumen — ATE intelligence",
+  description: "Verilumen ATE intelligence — real-time semiconductor test-floor yield and optimization",
 };
 
 /**
