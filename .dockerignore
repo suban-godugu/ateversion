@@ -1,0 +1,14 @@
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/node_modules
+**/.next
+**/dist
+**/.git
+**/.env
+**/.env.*
+!**/.env.example
+**/wafer_yield.db
+**/pgdata
+**/simulation

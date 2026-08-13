@@ -1,0 +1,15 @@
+# Railway (alternative to Render)
+# 1. New project → Deploy from GitHub
+# 2. Add PostgreSQL + Redis plugins
+# 3. Service root / Dockerfile path: backend/Dockerfile
+# 4. Set variables below in Railway Variables
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "backend/Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

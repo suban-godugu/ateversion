@@ -1,0 +1,55 @@
+# Render Blueprint — FastAPI backend + PostgreSQL + Redis
+# https://dashboard.render.com → New → Blueprint → this repo
+
+services:
+  - type: web
+    name: wafer-yield-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: wafer-yield-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: wafer-yield-redis
+          type: keyvalue
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_EXPIRE_MINUTES
+        value: "480"
+      - key: AUTH_DISABLED
+        value: "false"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: STALE_TELEMETRY_SECONDS
+        value: "45"
+      - key: TELEMETRY_CHANNEL
+        value: test-floor.events
+      - key: HOST
+        value: 0.0.0.0
+      # Update after Vercel deploy (comma-separated)
+      - key: CORS_ORIGINS
+        value: http://localhost:3000,http://127.0.0.1:3000
+
+  - type: keyvalue
+    name: wafer-yield-redis
+    plan: free
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+databases:
+  - name: wafer-yield-db
+    plan: free
+    region: oregon
+    databaseName: wafer_yield
+    user: wafer_yield

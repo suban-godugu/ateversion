@@ -1,0 +1,147 @@
+"use client";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { LimitStatus, TestLimitOut, TestLimitsOut } from "@/types/api";
+import {
+  approveTestLimit,
+  rejectTestLimit,
+  rollbackTestLimit,
+} from "@/services/api";
+
+const STATUS_STYLE: Record<LimitStatus, string> = {
+  ACTIVE: "text-[var(--green)]",
+  PENDING_APPROVAL: "text-[var(--amber)]",
+  RECOMMENDED: "text-[var(--cyan)]",
+  REJECTED: "text-[var(--muted)]",
+  ROLLED_BACK: "text-[var(--muted-2)]",
+};
+
+export function DynamicTestLimits({ data }: { data: TestLimitsOut | null }) {
+  const queryClient = useQueryClient();
+
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    void queryClient.invalidateQueries({ queryKey: ["test-limits"] });
+  };
+
+  const approveMut = useMutation({
+    mutationFn: (limitId: string) => approveTestLimit(limitId, { actor: "engineer" }),
+    onSuccess: invalidate,
+  });
+  const rejectMut = useMutation({
+    mutationFn: (limitId: string) => rejectTestLimit(limitId, { actor: "engineer" }),
+    onSuccess: invalidate,
+  });
+  const rollbackMut = useMutation({
+    mutationFn: (limitId: string) => rollbackTestLimit(limitId, { actor: "engineer" }),
+    onSuccess: invalidate,
+  });
+
+  return (
+    <div className="relative flex flex-col gap-2.5 rounded border border-[var(--line)] bg-[var(--panel)] p-[17px]">
+      <span className="absolute bottom-0 left-0 top-0 w-0.5 rounded-l bg-[var(--cyan)]" />
+      <div className="flex items-start justify-between">
+        <div className="text-[12.5px] font-semibold">Dynamic Test Limits</div>
+        <span className="rounded-full bg-[var(--cyan-dim)] px-[7px] py-0.5 text-[10px] font-semibold text-[var(--cyan)]">
+          {data ? `${data.adjustments_today} today` : "— today"}
+        </span>
+      </div>
+      <div>
+        {(data?.items ?? []).map((item) => (
+          <LimitRow
+            key={item.limit_id}
+            item={item}
+            busy={approveMut.isPending || rejectMut.isPending || rollbackMut.isPending}
+            onApprove={() => approveMut.mutate(item.limit_id)}
+            onReject={() => rejectMut.mutate(item.limit_id)}
+            onRollback={() => rollbackMut.mutate(item.limit_id)}
+          />
+        ))}
+        {!data?.items?.length ? (
+          <div className="border-t border-[var(--line)] py-[7px] text-[11.5px] text-[var(--muted)] first:border-t-0">
+            No limit adjustments from backend
+          </div>
+        ) : null}
+      </div>
+      <div className="text-[11.5px] leading-relaxed text-[var(--muted)]">
+        Per-lot limit tightening driven by rolling process-capability (Cpk) trends.
+        Approvals apply authoritative backend state only.
+      </div>
+    </div>
+  );
+}
+
+function LimitRow({
+  item,
+  busy,
+  onApprove,
+  onReject,
+  onRollback,
+}: {
+  item: TestLimitOut;
+  busy: boolean;
+  onApprove: () => void;
+  onReject: () => void;
+  onRollback: () => void;
+}) {
+  const pending = item.status === "PENDING_APPROVAL" || item.status === "RECOMMENDED";
+  const canRollback = item.status === "ACTIVE" || item.status === "REJECTED";
+  const name = item.name || `${item.parameter} · ${item.test_name}`;
+
+  return (
+    <div className="border-t border-[var(--line)] py-[7px] text-[11.5px] first:border-t-0">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="truncate text-[var(--text)]">{name}</div>
+          <div className={`mt-0.5 font-mono text-[10px] ${STATUS_STYLE[item.status]}`}>
+            {item.status}
+            {item.cpk != null ? ` · Cpk ${item.cpk.toFixed(2)}` : ""}
+          </div>
+        </div>
+        <div className="shrink-0 text-right font-mono text-[11px] font-semibold text-[var(--cyan)]">
+          {item.change_label}
+        </div>
+      </div>
+      {pending || canRollback ? (
+        <div className="mt-1.5 flex gap-1.5">
+          {pending ? (
+            <>
+              <ActionBtn label="Approve" disabled={busy} onClick={onApprove} />
+              <ActionBtn label="Reject" disabled={busy} onClick={onReject} muted />
+            </>
+          ) : null}
+          {canRollback ? (
+            <ActionBtn label="Rollback" disabled={busy} onClick={onRollback} muted />
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ActionBtn({
+  label,
+  onClick,
+  disabled,
+  muted,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  muted?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`rounded border px-2 py-0.5 text-[10px] font-semibold disabled:opacity-40 ${
+        muted
+          ? "border-[var(--line)] text-[var(--muted)]"
+          : "border-[var(--cyan)] text-[var(--cyan)]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
