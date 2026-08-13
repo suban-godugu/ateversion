@@ -17,10 +17,10 @@ export function VerilumenBrand({ size = "header" }: VerilumenBrandProps) {
       <Image
         src="/branding/verilumen-mark.png"
         alt="VERILUMEN"
-        width={78}
-        height={48}
+        width={64}
+        height={64}
         className="w-auto object-contain"
-        style={{ height: markH }}
+        style={{ height: markH, width: markH }}
         priority
       />
       <div className="min-w-0 leading-tight">
