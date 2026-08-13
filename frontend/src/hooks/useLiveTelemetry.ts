@@ -5,5 +5,5 @@
  * Kept as a no-op export so older imports do not break.
  */
 export function useLiveTelemetry(_enabled = true) {
-  // intentionally empty
+  void _enabled;
 }
