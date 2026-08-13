@@ -5,6 +5,7 @@ import { DisconnectedBanner } from "@/components/common/DisconnectedBanner";
 import { ErrorState } from "@/components/common/ErrorState";
 import { LiveStatusIndicator } from "@/components/common/LiveStatusIndicator";
 import { LoadingState } from "@/components/common/LoadingState";
+import { VerilumenBrand } from "@/components/branding/VerilumenBrand";
 import { EnterpriseControls } from "@/components/dashboard/EnterpriseControls";
 import { TestFloorEventLog } from "@/components/events/TestFloorEventLog";
 import { HeaderStats } from "@/components/kpi/HeaderStats";
@@ -72,12 +73,7 @@ export function DashboardShell() {
 
       <header className="mb-[26px] flex flex-wrap items-end justify-between gap-6 border-b border-[var(--line)] pb-5">
         <div>
-          <h1 className="font-display m-0 text-[22px] font-bold uppercase tracking-[0.08em] text-[#3b6ea8]">
-            Verilumen
-          </h1>
-          <div className="mt-1 text-[34px] font-display font-semibold tracking-[-0.01em] text-[var(--text)]">
-            ATE intelligence
-          </div>
+          <VerilumenBrand size="header" />
         </div>
         <div className="flex flex-wrap items-end gap-6">
           <HeaderStats data={summary?.header ?? null} />

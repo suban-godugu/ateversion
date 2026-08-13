@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { VerilumenBrand } from "@/components/branding/VerilumenBrand";
 import { fetchMe, login } from "@/services/api";
 import { useAuthStore } from "@/stores/authStore";
 import type { AppRole } from "@/stores/authStore";
@@ -91,11 +92,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="font-display mb-1 text-[20px] font-bold uppercase tracking-[0.08em] text-[#3b6ea8]">
-        Verilumen
-      </h1>
-      <div className="mb-2 text-[30px] font-display font-semibold tracking-[-0.01em] text-[var(--text)]">
-        ATE intelligence
+      <div className="mb-5">
+        <VerilumenBrand size="auth" />
       </div>
       <p className="mb-6 text-[12px] text-[var(--muted)]">
         Sign in with an authorized engineering role. Unauthorized API / WebSocket
