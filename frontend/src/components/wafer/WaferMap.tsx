@@ -126,14 +126,14 @@ export function WaferMap({ waferId }: WaferMapProps) {
         {wafer?.caption ?? "Live wafer map"}
       </div>
 
-      {/* Server-provided aggregates */}
-      <div className="grid w-full grid-cols-4 gap-2 text-center sm:grid-cols-7">
+      {/* Server-provided aggregates — flex boxes sized to fit full labels */}
+      <div className="flex w-full flex-wrap gap-2">
         <Stat label="Total Dies" value={wafer ? String(wafer.total_dies) : "—"} />
         <Stat label="Tested" value={wafer ? String(wafer.tested_dies) : "—"} />
         <Stat label="Pass" value={wafer ? String(wafer.pass_count) : "—"} color="var(--green)" />
         <Stat label="Retest" value={wafer ? String(wafer.retest_count) : "—"} color="var(--amber)" />
         <Stat label="Fail" value={wafer ? String(wafer.fail_count) : "—"} color="var(--red)" />
-        <Stat label="Reclassified" value={wafer ? String(wafer.reclass_count) : "—"} color="var(--cyan)" />
+        <Stat label="Reclass" value={wafer ? String(wafer.reclass_count) : "—"} color="var(--cyan)" />
         <Stat
           label="Yield"
           value={wafer ? `${formatNumber(wafer.yield_pct)}%` : "—"}
@@ -168,9 +168,11 @@ function Stat({
   color?: string;
 }) {
   return (
-    <div className="rounded border border-[var(--line)] bg-[var(--panel)] px-1 py-1.5">
-      <div className="text-[9px] uppercase tracking-[0.08em] text-[var(--muted-2)]">{label}</div>
-      <div className="font-mono text-[12px] font-semibold" style={{ color }}>
+    <div className="min-w-[5.75rem] flex-1 rounded border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-center">
+      <div className="whitespace-nowrap text-[9px] uppercase tracking-[0.05em] text-[var(--muted-2)]">
+        {label}
+      </div>
+      <div className="mt-0.5 font-mono text-[13px] font-semibold" style={{ color }}>
         {value}
       </div>
     </div>

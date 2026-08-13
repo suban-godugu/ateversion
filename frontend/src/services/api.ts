@@ -29,9 +29,10 @@ function getApiBase(): string {
 function networkErrorMessage(err: unknown, action: string): Error {
   const msg = err instanceof Error ? err.message : String(err);
   if (msg === "Failed to fetch" || msg.includes("NetworkError") || msg.includes("Load failed")) {
-    return new Error(
-      `${action}: cannot reach API. Wake the backend at https://wafer-yield-api.onrender.com/api/health (wait for OK), then retry.`,
-    );
+    const base = getApiBase();
+    const health =
+      base.startsWith("http") ? `${base}/health` : `${base}/health (local proxy → API_PROXY_TARGET)`;
+    return new Error(`${action}: cannot reach API at ${health}. Confirm the backend is running, then retry.`);
   }
   return err instanceof Error ? err : new Error(msg);
 }
