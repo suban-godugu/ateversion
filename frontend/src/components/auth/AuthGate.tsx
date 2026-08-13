@@ -91,10 +91,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="font-display mb-1 text-[32px] font-bold uppercase tracking-[0.06em] text-[var(--text)]">
+      <h1 className="font-display mb-1 text-[20px] font-bold uppercase tracking-[0.08em] text-[#3b6ea8]">
         Verilumen
       </h1>
-      <div className="mb-2 text-[16px] font-medium tracking-[0.04em] text-[var(--muted)]">
+      <div className="mb-2 text-[30px] font-display font-semibold tracking-[-0.01em] text-[var(--text)]">
         ATE intelligence
       </div>
       <p className="mb-6 text-[12px] text-[var(--muted)]">

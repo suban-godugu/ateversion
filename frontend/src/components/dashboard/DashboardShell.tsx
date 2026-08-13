@@ -72,10 +72,10 @@ export function DashboardShell() {
 
       <header className="mb-[26px] flex flex-wrap items-end justify-between gap-6 border-b border-[var(--line)] pb-5">
         <div>
-          <h1 className="font-display m-0 text-[34px] font-bold uppercase tracking-[0.06em] text-[var(--text)]">
+          <h1 className="font-display m-0 text-[22px] font-bold uppercase tracking-[0.08em] text-[#3b6ea8]">
             Verilumen
           </h1>
-          <div className="mt-1.5 text-[16px] font-medium tracking-[0.04em] text-[var(--muted)]">
+          <div className="mt-1 text-[34px] font-display font-semibold tracking-[-0.01em] text-[var(--text)]">
             ATE intelligence
           </div>
         </div>
