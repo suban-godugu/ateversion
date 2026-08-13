@@ -32,9 +32,6 @@ export function VerilumenBrand({ size = "header" }: VerilumenBrandProps) {
           }
         >
           Verilumen
-          <span className="relative -top-2 ml-0.5 text-[8px] tracking-normal text-[var(--cyan)]">
-            TM
-          </span>
         </div>
         <div
           className={
