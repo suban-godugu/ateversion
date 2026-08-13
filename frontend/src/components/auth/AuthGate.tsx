@@ -92,15 +92,15 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <div className="mb-5">
+      <div className="vl-enter mb-6">
         <VerilumenBrand size="auth" />
       </div>
-      <p className="mb-6 text-[12px] text-[var(--muted)]">
+      <p className="vl-enter vl-enter-delay-1 mb-5 text-[12px] leading-relaxed text-[var(--muted)]">
         Sign in with an authorized engineering role. Unauthorized API / WebSocket
         access is rejected.
       </p>
       <form
-        className="flex flex-col gap-3 rounded border border-[var(--line)] bg-[var(--panel)] p-4"
+        className="vl-surface vl-enter vl-enter-delay-2 flex flex-col gap-3.5 p-5"
         onSubmit={(e) => {
           e.preventDefault();
           void (async () => {
@@ -129,20 +129,20 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           })();
         }}
       >
-        <label className="text-[10px] uppercase tracking-[0.08em] text-[var(--muted-2)]">
+        <label className="vl-label">
           Username
           <input
-            className="mt-1 w-full rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 text-[12px] text-[var(--text)]"
+            className="vl-field mt-1.5 w-full px-3 py-2 text-[12px]"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
           />
         </label>
-        <label className="text-[10px] uppercase tracking-[0.08em] text-[var(--muted-2)]">
+        <label className="vl-label">
           Password
           <input
             type="password"
-            className="mt-1 w-full rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 text-[12px] text-[var(--text)]"
+            className="vl-field mt-1.5 w-full px-3 py-2 text-[12px]"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
@@ -152,7 +152,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         <button
           type="submit"
           disabled={busy}
-          className="rounded border border-[var(--cyan)] px-3 py-1.5 text-[12px] font-semibold text-[var(--cyan)] disabled:opacity-40"
+          className="mt-1 rounded-[6px] border border-[rgba(107,193,242,0.55)] bg-[linear-gradient(180deg,rgba(107,193,242,0.12),transparent)] px-3 py-2 text-[12px] font-semibold text-[var(--cyan)] transition-colors hover:border-[var(--cyan)] disabled:opacity-40"
         >
           {busy ? "Signing in…" : "Sign in"}
         </button>

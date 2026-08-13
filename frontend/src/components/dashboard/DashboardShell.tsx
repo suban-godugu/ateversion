@@ -71,49 +71,49 @@ export function DashboardShell() {
     <div className="mx-auto max-w-[1400px] px-7 pb-[90px] pt-[30px]">
       <DisconnectedBanner />
 
-      <header className="mb-[26px] flex flex-wrap items-end justify-between gap-6 border-b border-[var(--line)] pb-5">
+      <header className="vl-header vl-enter mb-[28px] flex flex-wrap items-end justify-between gap-6">
         <div>
           <VerilumenBrand size="header" />
         </div>
-        <div className="flex flex-wrap items-end gap-6">
+        <div className="flex flex-wrap items-end gap-4">
           <HeaderStats data={summary?.header ?? null} />
-          <div className="flex items-end gap-3">
+          <div className="flex items-end gap-3 border-l border-[var(--line)] pl-4">
             <UploadControl />
             <div className="text-right">
-              <div className="mb-1 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-2)]">
-                Live Connection
-              </div>
+              <div className="vl-label mb-1">Live Connection</div>
               <LiveStatusIndicator />
             </div>
           </div>
         </div>
       </header>
 
-      <EnterpriseControls />
+      <div className="vl-enter vl-enter-delay-1">
+        <EnterpriseControls />
+      </div>
 
-      <section className="mb-[30px] grid grid-cols-1 gap-[26px] rounded border border-[var(--line)] bg-[var(--panel-2)] p-6 md:grid-cols-[340px_1fr]">
+      <section className="vl-surface-deep vl-enter vl-enter-delay-2 mb-[30px] grid grid-cols-1 gap-[26px] p-6 md:grid-cols-[340px_1fr]">
         <WaferMap waferId={wafer?.wafer_id ?? null} />
         <YieldSummary wafer={wafer} />
       </section>
 
-      <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-2)]">
-        Optimization Parameters
+      <div className="vl-label mb-3">Optimization Parameters</div>
+      <div className="vl-enter vl-enter-delay-3">
+        <OptimizationKpiGrid>
+          <PredictiveMaintenanceCard />
+          <DynamicTestLimits data={summary?.test_limits ?? null} />
+        </OptimizationKpiGrid>
       </div>
-      <OptimizationKpiGrid>
-        <PredictiveMaintenanceCard />
-        <DynamicTestLimits data={summary?.test_limits ?? null} />
-      </OptimizationKpiGrid>
 
       <TestFloorEventLog />
 
-      <footer className="mt-6 flex flex-wrap justify-between gap-2 border-t border-[var(--line)] pt-4 text-[11px] text-[var(--muted-2)]">
+      <footer className="mt-7 flex flex-wrap justify-between gap-2 border-t border-[var(--line)] pt-4 text-[11px] text-[var(--muted-2)]">
         <span>
           Metrics reflect an ML-assisted test-optimization layer over standard ATE limits and bin
           logic
         </span>
-        <span>
+        <span className="font-mono text-[10px] tracking-wide">
           {summary?.connection_hint ??
-            "Live telemetry · PostgreSQL projections · Redis fan-out · authenticated WebSocket"}
+            "Live telemetry · PostgreSQL · Redis · authenticated WebSocket"}
         </span>
       </footer>
     </div>

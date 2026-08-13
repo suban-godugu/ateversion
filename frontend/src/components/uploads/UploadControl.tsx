@@ -59,17 +59,15 @@ export function UploadControl() {
         type="button"
         title="Upload wafer image / STDF·STIL / log"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-9 w-9 items-center justify-center rounded border border-[var(--line)] bg-[var(--panel)] text-[var(--cyan)] hover:border-[var(--cyan)]"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-[6px] border border-[var(--line-bright)] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent),var(--panel)] text-[var(--cyan)] transition-colors hover:border-[rgba(107,193,242,0.55)]"
         aria-label="Upload files"
       >
         <Upload className="h-4 w-4" />
       </button>
 
       {open ? (
-        <div className="absolute right-0 z-40 mt-2 w-[300px] rounded border border-[var(--line)] bg-[var(--panel)] p-3 shadow-lg">
-          <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-2)]">
-            Upload floor artifacts
-          </div>
+        <div className="vl-surface absolute right-0 z-40 mt-2 w-[300px] p-3.5">
+          <div className="vl-label mb-2">Upload floor artifacts</div>
           <p className="mb-3 text-[11px] leading-relaxed text-[var(--muted)]">
             Wafer map image, STDF/STIL pattern file, or ATE test log. Ingested by the Python
             backend — React only displays results.
@@ -80,7 +78,7 @@ export function UploadControl() {
             <select
               value={kind}
               onChange={(e) => setKind(e.target.value as UploadKind)}
-              className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 text-[11.5px] normal-case tracking-normal text-[var(--text)]"
+              className="vl-field px-2.5 py-1.5 text-[11.5px] normal-case tracking-normal"
             >
               <option value="auto">Auto-detect</option>
               <option value="wafer_image">Wafer image</option>

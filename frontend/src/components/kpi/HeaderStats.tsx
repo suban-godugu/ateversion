@@ -3,7 +3,7 @@ import { formatNumber } from "@/lib/utils";
 
 export function HeaderStats({ data }: { data: HeaderStatsType | null }) {
   return (
-    <div className="flex flex-wrap gap-[30px]">
+    <div className="flex flex-wrap gap-2">
       <Stat label="Lots In Test" value={data ? String(data.lots_in_test) : "—"} />
       <Stat
         label="Test Time Saved (24h)"
@@ -29,9 +29,12 @@ function Stat({
   color?: string;
 }) {
   return (
-    <div className="text-right">
-      <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--muted-2)]">{label}</div>
-      <div className="font-mono text-[21px] font-semibold mt-[3px]" style={{ color }}>
+    <div className="vl-stat text-right">
+      <div className="vl-label">{label}</div>
+      <div
+        className="font-mono mt-1 text-[22px] font-semibold tracking-tight"
+        style={{ color: color ?? "var(--text)" }}
+      >
         {value}
       </div>
     </div>

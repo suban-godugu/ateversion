@@ -44,12 +44,10 @@ export function EnterpriseControls() {
   };
 
   return (
-    <section className="mb-5 rounded border border-[var(--line)] bg-[var(--panel)] p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-2)]">
-          Enterprise Floor Controls
-        </div>
-        <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">
+    <section className="vl-surface mb-5 p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="vl-label">Enterprise Floor Controls</div>
+        <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--muted)]">
           Stream{" "}
           <span
             className={
@@ -92,7 +90,7 @@ export function EnterpriseControls() {
             type="datetime-local"
             value={since}
             onChange={(e) => setSince(e.target.value)}
-            className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 font-mono text-[11px] normal-case tracking-normal text-[var(--text)] outline-none focus:border-[var(--cyan)]"
+            className="vl-field px-2.5 py-1.5 font-mono text-[11px] normal-case tracking-normal"
           />
         </label>
         <label className="flex flex-col gap-1 text-[10px] uppercase tracking-[0.08em] text-[var(--muted-2)]">
@@ -101,12 +99,12 @@ export function EnterpriseControls() {
             type="datetime-local"
             value={until}
             onChange={(e) => setUntil(e.target.value)}
-            className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 font-mono text-[11px] normal-case tracking-normal text-[var(--text)] outline-none focus:border-[var(--cyan)]"
+            className="vl-field px-2.5 py-1.5 font-mono text-[11px] normal-case tracking-normal"
           />
         </label>
       </div>
 
-      <div className="mt-2.5 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-2">
         <Button
           type="button"
           variant={streamMode === "LIVE" ? "default" : "ghost"}
@@ -148,7 +146,7 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 text-[11.5px] normal-case tracking-normal text-[var(--text)] outline-none focus:border-[var(--cyan)]"
+        className="vl-field px-2.5 py-1.5 text-[11.5px] normal-case tracking-normal"
       >
         <option value="">All</option>
         {options.map((opt) => (
