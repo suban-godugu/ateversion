@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth import ensure_seed_users
 from app.api.deps import AuthUser, require_permissions
 from app.core.database import SessionLocal, get_db
+from app.core.logging import get_logger
 from app.core.rbac import Permission
 from app.ingestion.seed import seed
 from app.models.entities import Die, KpiMetric, Wafer
 from app.repositories.event_repo import AuditLogRepository
 
 router = APIRouter(tags=["admin"])
+logger = get_logger("admin")
 
 
 @router.post("/admin/seed")
@@ -26,17 +28,25 @@ async def bootstrap_seed(
     Populate an empty/reset production DB with reference floor data.
     ADMIN only. Safe to re-run (clears domain tables then reseeds).
     """
-    await seed()
+    try:
+        await seed()
+    except Exception as exc:
+        logger.warning("bootstrap_seed_failed", extra={"error": str(exc)})
+        raise HTTPException(status_code=500, detail=f"Seed failed: {exc}") from exc
+
     async with SessionLocal() as db:
         await ensure_seed_users(db)
-        await AuditLogRepository(db).write(
-            actor=user.username,
-            action="bootstrap_seed",
-            entity_type="database",
-            entity_id="production",
-            detail="Admin triggered reference seed",
-        )
-        await db.commit()
+        try:
+            await AuditLogRepository(db).write(
+                actor=user.username,
+                action="bootstrap_seed",
+                entity_type="database",
+                entity_id="production",
+                detail="Admin triggered reference seed",
+            )
+            await db.commit()
+        except Exception:
+            await db.rollback()
         wafers = int((await db.scalar(select(func.count()).select_from(Wafer))) or 0)
         dies = int((await db.scalar(select(func.count()).select_from(Die))) or 0)
         kpis = int((await db.scalar(select(func.count()).select_from(KpiMetric))) or 0)
