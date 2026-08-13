@@ -13,9 +13,33 @@ import { KPI_LIVE_EVENTS } from "@/types/kpi";
 import type { WaferTelemetryEvent } from "@/types/wafer";
 import { DIE_EVENT_TYPES } from "@/types/wafer";
 
+const DEFAULT_PROD_WS = "wss://wafer-yield-api.onrender.com/ws/test-floor";
+
+/**
+ * Always return a real ws/wss URL for the test-floor stream.
+ * Guards against mis-set Vercel env (REST /api URL pasted into NEXT_PUBLIC_WS_URL).
+ */
 function resolveWsBase(): string {
-  if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
+  const raw = (process.env.NEXT_PUBLIC_WS_URL || "").trim();
+
+  if (raw) {
+    // Common misconfig: REST base used as WS → causes "WebSocket error"
+    const looksLikeRestApi =
+      raw.includes("/api") && !raw.includes("/ws/");
+    if (looksLikeRestApi) {
+      return DEFAULT_PROD_WS;
+    }
+    if (raw.startsWith("https://")) return `wss://${raw.slice("https://".length)}`;
+    if (raw.startsWith("http://")) return `ws://${raw.slice("http://".length)}`;
+    if (raw.startsWith("wss://") || raw.startsWith("ws://")) return raw;
+  }
+
   if (typeof window === "undefined") return "ws://127.0.0.1:8000/ws/test-floor";
+
+  if (/\.vercel\.app$/i.test(window.location.hostname)) {
+    return DEFAULT_PROD_WS;
+  }
+
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
   return `${proto}//${window.location.host}/ws/test-floor`;
 }
@@ -92,7 +116,13 @@ export function useWaferRealtime(waferId: string | null | undefined, enabled = t
     const connect = () => {
       if (closed) return;
       setStatus("RECONNECTING");
-      const url = `${resolveWsBase()}?token=${encodeURIComponent(token)}`;
+      const base = resolveWsBase();
+      if (!base.startsWith("ws://") && !base.startsWith("wss://")) {
+        setError("Invalid WebSocket URL (expected ws/wss)");
+        setStatus("OFFLINE");
+        return;
+      }
+      const url = `${base}?token=${encodeURIComponent(token)}`;
       ws = new WebSocket(url);
 
       ws.onopen = () => {
