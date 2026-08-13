@@ -29,69 +29,12 @@ export function DashboardShell() {
   useEffect(() => {
     if (!summary?.active_wafer) return;
     // Lot/wafer from backend only — never inject default tester/site.
-    const payload = {
+    hydrateFromSummary({
       lotId: summary.active_wafer.lot_id,
       waferId: summary.active_wafer.wafer_id,
-      testerId: null as string | null,
-      siteId: null as string | null,
-    };
-    // #region agent log
-    const before = useOpsStore.getState();
-    const logDbg = (hypothesisId: string, location: string, message: string, data: Record<string, unknown>) => {
-      const body = JSON.stringify({
-        sessionId: "4c992b",
-        runId: "post-fix",
-        hypothesisId,
-        location,
-        message,
-        data,
-        timestamp: Date.now(),
-      });
-      fetch("http://127.0.0.1:7849/ingest/4b5f2f89-6889-4769-a476-cb2a233561aa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "4c992b" },
-        body,
-      }).catch(() => {});
-      fetch("/debug-ingest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-      }).catch(() => {});
-    };
-    logDbg("A", "DashboardShell.tsx:hydrate-effect", "hydrateFromSummary (no hardcoded ATE-04/1)", {
-      before: {
-        lotId: before.lotId,
-        waferId: before.waferId,
-        testerId: before.testerId,
-        siteId: before.siteId,
-        testerUserSet: before.testerUserSet,
-        siteUserSet: before.siteUserSet,
-      },
-      payload,
+      testerId: null,
+      siteId: null,
     });
-    // #endregion
-    hydrateFromSummary(payload);
-    // #region agent log
-    const after = useOpsStore.getState();
-    logDbg("B", "DashboardShell.tsx:hydrate-after", "ops state after hydrate", {
-      after: {
-        lotId: after.lotId,
-        waferId: after.waferId,
-        testerId: after.testerId,
-        siteId: after.siteId,
-        testerUserSet: after.testerUserSet,
-        siteUserSet: after.siteUserSet,
-      },
-      keptAll:
-        before.testerUserSet &&
-        before.testerId === "" &&
-        after.testerId === "" &&
-        before.siteUserSet &&
-        before.siteId === "" &&
-        after.siteId === "",
-      noHardcodedDefaults: payload.testerId == null && payload.siteId == null,
-    });
-    // #endregion
   }, [summary, hydrateFromSummary]);
 
   const waferId = selectedWaferId || summary?.active_wafer?.wafer_id || null;
