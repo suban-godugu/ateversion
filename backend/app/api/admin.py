@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth import ensure_seed_users
 from app.api.deps import AuthUser, require_permissions
-from app.core.database import get_db
+from app.core.database import SessionLocal, get_db
 from app.core.rbac import Permission
 from app.ingestion.seed import seed
 from app.models.entities import Die, KpiMetric, Wafer
@@ -19,7 +19,7 @@ router = APIRouter(tags=["admin"])
 
 @router.post("/admin/seed")
 async def bootstrap_seed(
-    db: AsyncSession = Depends(get_db),
+    _: AsyncSession = Depends(get_db),
     user: AuthUser = Depends(require_permissions(Permission.MANAGE_USERS)),
 ) -> dict:
     """
@@ -27,22 +27,19 @@ async def bootstrap_seed(
     ADMIN only. Safe to re-run (clears domain tables then reseeds).
     """
     await seed()
-    async with db.begin():
-        pass
-    # Recreate users if somehow missing; seed does not wipe users
-    await ensure_seed_users(db)
-    await AuditLogRepository(db).write(
-        actor=user.username,
-        action="bootstrap_seed",
-        entity_type="database",
-        entity_id="production",
-        detail="Admin triggered reference seed",
-    )
-    await db.commit()
-
-    wafers = int((await db.scalar(select(func.count()).select_from(Wafer))) or 0)
-    dies = int((await db.scalar(select(func.count()).select_from(Die))) or 0)
-    kpis = int((await db.scalar(select(func.count()).select_from(KpiMetric))) or 0)
+    async with SessionLocal() as db:
+        await ensure_seed_users(db)
+        await AuditLogRepository(db).write(
+            actor=user.username,
+            action="bootstrap_seed",
+            entity_type="database",
+            entity_id="production",
+            detail="Admin triggered reference seed",
+        )
+        await db.commit()
+        wafers = int((await db.scalar(select(func.count()).select_from(Wafer))) or 0)
+        dies = int((await db.scalar(select(func.count()).select_from(Die))) or 0)
+        kpis = int((await db.scalar(select(func.count()).select_from(KpiMetric))) or 0)
     return {
         "status": "seeded",
         "wafers": wafers,
