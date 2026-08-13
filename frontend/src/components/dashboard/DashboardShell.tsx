@@ -11,6 +11,7 @@ import { HeaderStats } from "@/components/kpi/HeaderStats";
 import { OptimizationKpiGrid } from "@/components/kpi/OptimizationKpiGrid";
 import { DynamicTestLimits } from "@/components/limits/DynamicTestLimits";
 import { PredictiveMaintenanceCard } from "@/components/maintenance/PredictiveMaintenanceCard";
+import { UploadControl } from "@/components/uploads/UploadControl";
 import { WaferMap } from "@/components/wafer/WaferMap";
 import { YieldSummary } from "@/components/wafer/YieldSummary";
 import { useQuery } from "@tanstack/react-query";
@@ -78,13 +79,16 @@ export function DashboardShell() {
             Wafer Yield <span className="text-[var(--green)]">Intelligence</span>
           </h1>
         </div>
-        <div className="flex flex-wrap items-end gap-8">
+        <div className="flex flex-wrap items-end gap-6">
           <HeaderStats data={summary?.header ?? null} />
-          <div className="text-right">
-            <div className="mb-1 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-2)]">
-              Live Connection
+          <div className="flex items-end gap-3">
+            <UploadControl />
+            <div className="text-right">
+              <div className="mb-1 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-2)]">
+                Live Connection
+              </div>
+              <LiveStatusIndicator />
             </div>
-            <LiveStatusIndicator />
           </div>
         </div>
       </header>

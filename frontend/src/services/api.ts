@@ -15,9 +15,26 @@ import type { MaintenanceList, MaintenanceTesterDetail } from "@/types/maintenan
 
 import { useAuthStore } from "@/stores/authStore";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  (typeof window !== "undefined" ? `${window.location.origin}/api` : "http://127.0.0.1:8000/api");
+function getApiBase(): string {
+  // On Vercel, always use same-origin /api proxy (fixes browser "Failed to fetch" / CORS).
+  if (typeof window !== "undefined" && /\.vercel\.app$/i.test(window.location.hostname)) {
+    return "/api";
+  }
+  const fromEnv = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (fromEnv?.startsWith("http")) return fromEnv.replace(/\/$/, "");
+  if (fromEnv?.startsWith("/")) return fromEnv.replace(/\/$/, "") || "/api";
+  return typeof window !== "undefined" ? "/api" : "http://127.0.0.1:8000/api";
+}
+
+function networkErrorMessage(err: unknown, action: string): Error {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg === "Failed to fetch" || msg.includes("NetworkError") || msg.includes("Load failed")) {
+    return new Error(
+      `${action}: cannot reach API. Wake the backend at https://wafer-yield-api.onrender.com/api/health (wait for OK), then retry.`,
+    );
+  }
+  return err instanceof Error ? err : new Error(msg);
+}
 
 function authHeaders(): Record<string, string> {
   const token = useAuthStore.getState().accessToken;
@@ -32,7 +49,7 @@ async function requestJson<T>(path: string, init?: RequestInit, retries = 2): Pr
   let lastErr: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const res = await fetch(`${API_BASE}${path}`, {
+      const res = await fetch(`${getApiBase()}${path}`, {
         cache: "no-store",
         headers: {
           Accept: "application/json",
@@ -56,12 +73,15 @@ async function requestJson<T>(path: string, init?: RequestInit, retries = 2): Pr
       }
       return res.json() as Promise<T>;
     } catch (err) {
-      lastErr = err;
-      if (attempt < retries && !(err instanceof Error && err.message.includes("unauthorized"))) {
+      lastErr = networkErrorMessage(err, `API ${path}`);
+      if (
+        attempt < retries &&
+        !(lastErr instanceof Error && lastErr.message.includes("unauthorized"))
+      ) {
         await sleep(250 * 2 ** attempt);
         continue;
       }
-      throw err;
+      throw lastErr;
     }
   }
   throw lastErr;
@@ -73,27 +93,31 @@ async function getJson<T>(path: string): Promise<T> {
 
 export async function login(username: string, password: string) {
   // Never attach a stale Bearer token to login (avoids 401 session wipe races).
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    cache: "no-store",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, password }),
-  });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`Login failed: ${res.status}${detail ? ` ${detail}` : ""}`);
+  try {
+    const res = await fetch(`${getApiBase()}/auth/login`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      throw new Error(`Login failed: ${res.status}${detail ? ` ${detail}` : ""}`);
+    }
+    return res.json() as Promise<{
+      access_token: string;
+      token_type: string;
+      role: string;
+      username: string;
+      user_id: string;
+      expires_in_minutes: number;
+    }>;
+  } catch (err) {
+    throw networkErrorMessage(err, "Login failed");
   }
-  return res.json() as Promise<{
-    access_token: string;
-    token_type: string;
-    role: string;
-    username: string;
-    user_id: string;
-    expires_in_minutes: number;
-  }>;
 }
 
 export function fetchMe() {
@@ -240,4 +264,38 @@ export function rollbackTestLimit(limitId: string, body: { actor?: string; comme
 
 export function fetchHealth() {
   return getJson<{ status: string; database: boolean; redis: boolean }>("/health");
+}
+
+export async function uploadFloorFile(file: File, kind: string = "auto") {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("kind", kind);
+  const res = await fetch(`${getApiBase()}/uploads`, {
+    method: "POST",
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+      ...authHeaders(),
+      // Do not set Content-Type — browser sets multipart boundary
+    },
+    body: form,
+  });
+  if (res.status === 401) {
+    useAuthStore.getState().clearSession();
+    throw new Error("Upload unauthorized");
+  }
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Upload failed: ${res.status}${detail ? ` ${detail}` : ""}`);
+  }
+  return res.json() as Promise<{
+    status: string;
+    kind: string;
+    filename?: string;
+    wafer_id?: string;
+    dies?: number;
+    yield_pct?: number;
+    events_accepted?: number;
+    lines?: number;
+  }>;
 }
