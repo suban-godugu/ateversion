@@ -65,10 +65,12 @@ export function WaferMap({ waferId }: WaferMapProps) {
   }
 
   return (
-    <div className="flex w-full flex-col items-center gap-2.5">
-      <div className="flex w-full items-center justify-between text-[10px] uppercase tracking-[0.1em] text-[var(--muted-2)]">
-        <span>{statusLabel(status)}</span>
-        <span className="font-mono normal-case tracking-normal">{wafer?.wafer_id ?? "—"}</span>
+    <div className="flex w-full flex-col items-center gap-3">
+      <div className="flex w-full items-center justify-between">
+        <span className="rounded border border-[rgba(110,231,168,0.3)] bg-[rgba(110,231,168,0.1)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--green)]">
+          {statusLabel(status)}
+        </span>
+        <span className="font-mono text-[11px] text-[#c5d8ec]">{wafer?.wafer_id ?? "—"}</span>
       </div>
 
       <svg

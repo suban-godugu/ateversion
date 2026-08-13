@@ -4,31 +4,30 @@ import { formatNumber } from "@/lib/utils";
 export function YieldSummary({ wafer }: { wafer: WaferDetail | null }) {
   const bins = wafer?.bin_counts;
   return (
-    <div className="flex flex-col justify-center gap-3.5">
-      <div className="flex flex-wrap gap-5 text-[11px] uppercase tracking-[0.1em] text-[var(--muted-2)]">
-        <span>
+    <div className="flex flex-col justify-center gap-4">
+      <div className="flex flex-wrap gap-3">
+        <span className="vl-chip">
           Lot{" "}
-          <b className="ml-1 font-mono text-[13px] normal-case tracking-normal text-[var(--text)]">
-            {wafer?.lot_id ?? "—"}
-          </b>
+          <b className="font-mono text-[13px] text-white">{wafer?.lot_id ?? "—"}</b>
         </span>
-        <span>
+        <span className="vl-chip">
           Wafer{" "}
-          <b className="ml-1 font-mono text-[13px] normal-case tracking-normal text-[var(--text)]">
-            {wafer?.wafer_id ?? "—"}
-          </b>
+          <b className="font-mono text-[13px] text-white">{wafer?.wafer_id ?? "—"}</b>
         </span>
       </div>
-      <div className="font-display text-[56px] font-bold leading-none">
+
+      <div className="font-display text-[58px] font-bold leading-none tracking-[-0.02em] text-white">
         <span>{wafer ? formatNumber(wafer.yield_pct) : "—"}</span>
-        <span className="ml-1 text-[24px] font-medium text-[var(--muted)]">% yield</span>
+        <span className="ml-1.5 text-[22px] font-medium text-[var(--cyan)]">% yield</span>
       </div>
-      <p className="max-w-[560px] text-[13.5px] leading-relaxed text-[var(--muted)]">
+
+      <p className="max-w-[560px] text-[13.5px] leading-relaxed text-[#b7c9dd]">
         Per-die bin classification, re-scored continuously against test-correlation history.
         Marginal fails are re-evaluated before being counted against yield; confirmed escapes
         trigger an immediate limit review on the affected site.
       </p>
-      <div className="mt-1 flex flex-wrap gap-[22px]">
+
+      <div className="mt-1 flex flex-wrap gap-2.5">
         <Bin swatch="var(--green)" label="Pass" value={bins?.pass} />
         <Bin swatch="var(--amber)" label="Retest" value={bins?.retest} />
         <Bin swatch="var(--red)" label="Fail" value={bins?.fail} />
@@ -48,10 +47,13 @@ function Bin({
   value?: number;
 }) {
   return (
-    <span className="flex items-center gap-[7px] text-[12px] text-[var(--muted)]">
-      <i className="inline-block h2.5 w-2.5 rounded-[2px]" style={{ background: swatch, width: 10, height: 10 }} />
-      {label}{" "}
-      <b className="ml-0.5 font-mono text-[var(--text)]">{value ?? "—"}</b>
+    <span className="vl-chip">
+      <i
+        className="inline-block rounded-[2px]"
+        style={{ background: swatch, width: 10, height: 10 }}
+      />
+      {label}
+      <b className="font-mono text-white">{value ?? "—"}</b>
     </span>
   );
 }

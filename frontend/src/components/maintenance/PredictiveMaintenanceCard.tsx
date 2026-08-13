@@ -38,10 +38,10 @@ export function PredictiveMaintenanceCard() {
 
   if (!data?.model_available) {
     return (
-      <div className="relative flex flex-col gap-2.5 rounded border border-[var(--line)] bg-[var(--panel)] p-[17px]">
-        <span className="absolute bottom-0 left-0 top-0 w-0.5 rounded-l bg-[var(--muted)]" />
-        <div className="text-[12.5px] font-semibold">Predictive Maintenance</div>
-        <div className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-3 py-4 text-center text-[12px] text-[var(--muted)]">
+      <div className="vl-card flex flex-col gap-2.5 overflow-hidden p-4">
+        <span className="absolute bottom-0 left-0 top-0 w-[3px] rounded-l bg-[var(--muted)]" />
+        <div className="pl-1 text-[13px] font-semibold text-[#f2f7fc]">Predictive Maintenance</div>
+        <div className="rounded-[6px] border border-[rgba(107,193,242,0.2)] bg-[rgba(107,193,242,0.06)] px-3 py-4 text-center text-[12px] text-[#b7c9dd]">
           Prediction unavailable
         </div>
       </div>
@@ -51,9 +51,9 @@ export function PredictiveMaintenanceCard() {
   const assets = data.assets ?? [];
   if (assets.length === 0) {
     return (
-      <div className="relative flex flex-col gap-2.5 rounded border border-[var(--line)] bg-[var(--panel)] p-[17px]">
-        <span className="absolute bottom-0 left-0 top-0 w-0.5 rounded-l bg-[var(--amber)]" />
-        <div className="text-[12.5px] font-semibold">Predictive Maintenance</div>
+      <div className="vl-card flex flex-col gap-2.5 overflow-hidden p-4">
+        <span className="absolute bottom-0 left-0 top-0 w-[3px] rounded-l bg-[var(--amber)]" />
+        <div className="pl-1 text-[13px] font-semibold text-[#f2f7fc]">Predictive Maintenance</div>
         <EmptyState message="No maintenance predictions yet." />
       </div>
     );
@@ -63,11 +63,11 @@ export function PredictiveMaintenanceCard() {
 
   return (
     <>
-      <div className="relative flex flex-col gap-2.5 rounded border border-[var(--line)] bg-[var(--panel)] p-[17px]">
-        <span className="absolute bottom-0 left-0 top-0 w-0.5 rounded-l bg-[var(--amber)]" />
-        <div className="flex items-start justify-between">
-          <div className="text-[12.5px] font-semibold">Predictive Maintenance</div>
-          <span className="rounded-full bg-[var(--amber-dim)] px-[7px] py-0.5 text-[10px] font-semibold text-[var(--amber)]">
+      <div className="vl-card flex flex-col gap-2.5 overflow-hidden p-4">
+        <span className="absolute bottom-0 left-0 top-0 w-[3px] rounded-l bg-[var(--amber)]" />
+        <div className="flex items-start justify-between pl-1">
+          <div className="text-[13px] font-semibold text-[#f2f7fc]">Predictive Maintenance</div>
+          <span className="rounded bg-[var(--amber-dim)] px-[7px] py-0.5 text-[10px] font-semibold text-[var(--amber)]">
             {flagged} flagged
           </span>
         </div>

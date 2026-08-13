@@ -45,11 +45,11 @@ export function DynamicTestLimits({ data }: { data: TestLimitsOut | null }) {
 
   return (
     <>
-      <div className="relative flex flex-col gap-2.5 rounded border border-[var(--line)] bg-[var(--panel)] p-[17px]">
-        <span className="absolute bottom-0 left-0 top-0 w-0.5 rounded-l bg-[var(--cyan)]" />
-        <div className="flex items-start justify-between">
-          <div className="text-[12.5px] font-semibold">Dynamic Test Limits</div>
-          <span className="rounded-full bg-[var(--cyan-dim)] px-[7px] py-0.5 text-[10px] font-semibold text-[var(--cyan)]">
+      <div className="vl-card flex flex-col gap-2.5 overflow-hidden p-4">
+        <span className="absolute bottom-0 left-0 top-0 w-[3px] rounded-l bg-[var(--cyan)]" />
+        <div className="flex items-start justify-between pl-1">
+          <div className="text-[13px] font-semibold text-[#f2f7fc]">Dynamic Test Limits</div>
+          <span className="rounded bg-[var(--cyan-dim)] px-[7px] py-0.5 text-[10px] font-semibold text-[var(--cyan)]">
             {data ? `${data.adjustments_today} today` : "— today"}
           </span>
         </div>

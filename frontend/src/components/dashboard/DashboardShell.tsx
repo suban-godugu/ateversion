@@ -96,7 +96,7 @@ export function DashboardShell() {
         <YieldSummary wafer={wafer} />
       </section>
 
-      <div className="vl-label mb-3">Optimization Parameters</div>
+      <div className="vl-section-title mb-3">Optimization Parameters</div>
       <div className="vl-enter vl-enter-delay-3">
         <OptimizationKpiGrid>
           <PredictiveMaintenanceCard />
@@ -104,14 +104,16 @@ export function DashboardShell() {
         </OptimizationKpiGrid>
       </div>
 
-      <TestFloorEventLog />
+      <div className="mt-1">
+        <TestFloorEventLog />
+      </div>
 
-      <footer className="mt-7 flex flex-wrap justify-between gap-2 border-t border-[var(--line)] pt-4 text-[11px] text-[var(--muted-2)]">
+      <footer className="mt-8 flex flex-wrap justify-between gap-2 border-t border-[rgba(107,193,242,0.18)] pt-4 text-[11px] text-[#7f96b0]">
         <span>
           Metrics reflect an ML-assisted test-optimization layer over standard ATE limits and bin
           logic
         </span>
-        <span className="font-mono text-[10px] tracking-wide">
+        <span className="font-mono text-[10px] tracking-wide text-[#9ec9ef]">
           {summary?.connection_hint ??
             "Live telemetry · PostgreSQL · Redis · authenticated WebSocket"}
         </span>

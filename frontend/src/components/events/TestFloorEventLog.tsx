@@ -54,28 +54,26 @@ export function TestFloorEventLog() {
   );
 
   return (
-    <section className="rounded border border-[var(--line)] bg-[var(--panel)] p-5">
-      <header className="mb-3.5 flex flex-wrap items-end justify-between gap-3">
+    <section className="vl-surface p-5">
+      <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="m-0 text-[12px] font-semibold uppercase tracking-[0.1em] text-[var(--muted)]">
-            Test Floor Event Log
-          </h2>
-          <p className="mt-1 text-[11px] text-[var(--muted-2)]">
+          <h2 className="vl-section-title m-0">Test Floor Event Log</h2>
+          <p className="mt-1.5 text-[11px] text-[#8fa6c0]">
             Authoritative backend events · WebSocket live insert · React Query history
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-[var(--muted)]">
-          <span>
-            <span className="text-[var(--text)]">{events.length}</span> shown
+        <div className="flex flex-wrap items-center gap-2.5 font-mono text-[11px] text-[#9eb6d0]">
+          <span className="vl-chip py-1">
+            <span className="text-white">{events.length}</span> shown
           </span>
-          <span>
-            <span className="text-[var(--text)]">{total}</span> total
+          <span className="vl-chip py-1">
+            <span className="text-white">{total}</span> total
           </span>
-          <span>
+          <span className="vl-chip py-1">
             <span className="text-[var(--amber)]">{unacknowledged}</span> open
           </span>
           <span
-            className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] ${
+            className={`rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${
               status === "LIVE"
                 ? "bg-[var(--green-dim)] text-[var(--green)]"
                 : status === "OFFLINE"
@@ -101,8 +99,8 @@ export function TestFloorEventLog() {
         ) : events.length === 0 ? (
           <EmptyState message="No events match the current filters." />
         ) : (
-          <div className="max-h-[420px] overflow-y-auto rounded border border-[var(--line)]">
-            <div className="sticky top-0 grid grid-cols-[72px_72px_88px_1fr_64px] gap-2 border-b border-[var(--line)] bg-[var(--panel)] px-2.5 py-1.5 text-[9.5px] uppercase tracking-[0.08em] text-[var(--muted-2)]">
+          <div className="max-h-[420px] overflow-y-auto rounded-[8px] border border-[rgba(107,193,242,0.22)]">
+            <div className="sticky top-0 grid grid-cols-[72px_72px_88px_1fr_64px] gap-2 border-b border-[rgba(107,193,242,0.22)] bg-[#101826] px-2.5 py-2 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-[#9ec9ef]">
               <span>Time</span>
               <span>Sev</span>
               <span>Type</span>
@@ -148,8 +146,8 @@ function EventRow({
     <button
       type="button"
       onClick={onSelect}
-      className={`grid w-full grid-cols-[72px_72px_88px_1fr_64px] items-start gap-2 border-t border-[var(--line)] px-2.5 py-2 text-left text-[11.5px] first:border-t-0 ${
-        selected ? "bg-[var(--cyan-dim)]" : "hover:bg-[var(--panel-2)]"
+      className={`grid w-full grid-cols-[72px_72px_88px_1fr_64px] items-start gap-2 border-t border-[rgba(107,193,242,0.12)] px-2.5 py-2.5 text-left text-[11.5px] first:border-t-0 transition-colors ${
+        selected ? "bg-[rgba(107,193,242,0.14)]" : "hover:bg-[rgba(107,193,242,0.06)]"
       } ${event.acknowledged ? "opacity-70" : ""}`}
     >
       <span className="font-mono text-[10.5px] text-[var(--muted-2)]">

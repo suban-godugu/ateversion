@@ -33,7 +33,7 @@ export function EventFilters({ filters, options, onChange }: Props) {
             value={filters.q}
             onChange={(e) => set("q", e.target.value)}
             placeholder="message, lot, die, type…"
-            className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 text-[11.5px] normal-case tracking-normal text-[var(--text)] outline-none focus:border-[var(--cyan)]"
+            className="vl-field px-2.5 py-1.5 text-[11.5px] normal-case tracking-normal"
           />
         </label>
         <FilterSelect
@@ -69,7 +69,7 @@ export function EventFilters({ filters, options, onChange }: Props) {
             type="datetime-local"
             value={filters.since}
             onChange={(e) => set("since", e.target.value)}
-            className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 font-mono text-[11px] normal-case tracking-normal text-[var(--text)] outline-none focus:border-[var(--cyan)]"
+            className="vl-field px-2.5 py-1.5 font-mono text-[11px] normal-case tracking-normal"
           />
         </label>
         <label className="flex flex-col gap-1 text-[10px] uppercase tracking-[0.08em] text-[var(--muted-2)]">
@@ -78,7 +78,7 @@ export function EventFilters({ filters, options, onChange }: Props) {
             type="datetime-local"
             value={filters.until}
             onChange={(e) => set("until", e.target.value)}
-            className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 font-mono text-[11px] normal-case tracking-normal text-[var(--text)] outline-none focus:border-[var(--cyan)]"
+            className="vl-field px-2.5 py-1.5 font-mono text-[11px] normal-case tracking-normal"
           />
         </label>
         <label className="flex flex-col gap-1 text-[10px] uppercase tracking-[0.08em] text-[var(--muted-2)]">
@@ -86,7 +86,7 @@ export function EventFilters({ filters, options, onChange }: Props) {
           <select
             value={filters.acknowledged}
             onChange={(e) => set("acknowledged", e.target.value as EventFiltersState["acknowledged"])}
-            className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 text-[11.5px] normal-case tracking-normal text-[var(--text)] outline-none focus:border-[var(--cyan)]"
+            className="vl-field px-2.5 py-1.5 text-[11.5px] normal-case tracking-normal"
           >
             <option value="">All</option>
             <option value="false">Unacknowledged</option>
@@ -147,7 +147,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1.5 text-[11.5px] normal-case tracking-normal text-[var(--text)] outline-none focus:border-[var(--cyan)]"
+        className="vl-field px-2.5 py-1.5 text-[11.5px] normal-case tracking-normal"
       >
         <option value="">All</option>
         {options.map((o) => (

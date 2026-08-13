@@ -18,15 +18,20 @@ export function OptimizationKpiCard({ kpi, onOpen }: OptimizationKpiCardProps) {
     <button
       type="button"
       onClick={() => onOpen?.(kpi.id)}
-      className="relative flex w-full flex-col gap-2.5 rounded border border-[var(--line)] bg-[var(--panel)] p-[17px] text-left transition-colors hover:border-[var(--line-bright)]"
+      className="vl-card flex w-full flex-col gap-3 overflow-hidden p-4 text-left"
       style={{ ["--card-accent" as string]: accent }}
     >
-      <span className="absolute bottom-0 left-0 top-0 w-0.5 rounded-l" style={{ background: accent }} />
+      <span
+        className="absolute bottom-0 left-0 top-0 w-[3px] rounded-l"
+        style={{ background: accent }}
+      />
 
-      <div className="flex items-start justify-between gap-2">
-        <div className="text-[12.5px] font-semibold tracking-[0.01em]">{kpi.name}</div>
+      <div className="flex items-start justify-between gap-2 pl-1">
+        <div className="text-[13px] font-semibold tracking-[0.01em] text-[#f2f7fc]">
+          {kpi.name}
+        </div>
         <span
-          className={`shrink-0 rounded-full px-[7px] py-0.5 text-[10px] font-semibold tracking-[0.02em] ${
+          className={`shrink-0 rounded px-[7px] py-0.5 text-[10px] font-semibold tracking-[0.04em] ${
             kpi.trend === "up"
               ? "bg-[var(--green-dim)] text-[var(--green)]"
               : kpi.trend === "down"
@@ -34,21 +39,21 @@ export function OptimizationKpiCard({ kpi, onOpen }: OptimizationKpiCardProps) {
                 : "bg-[var(--cyan-dim)] text-[var(--cyan)]"
           }`}
         >
-          {kpi.trend === "up" ? "▲" : kpi.trend === "down" ? "▼" : "■"} trend
+          {kpi.trend === "up" ? "▲" : kpi.trend === "down" ? "▼" : "■"} {kpi.trend}
         </span>
       </div>
 
-      <div className="font-display text-[28px] font-bold">
+      <div className="font-display pl-1 text-[30px] font-bold leading-none text-white">
         {formatNumber(kpi.value, digits)}
-        <span className="ml-0.5 text-[14px] font-medium text-[var(--muted)]">{kpi.unit}</span>
+        <span className="ml-1 text-[14px] font-medium text-[#9eb6d0]">{kpi.unit}</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-[11px]">
+      <div className="grid grid-cols-2 gap-2 pl-1 text-[11px]">
         <Meta label="Target" value={`${formatNumber(kpi.target, digits)}${kpi.unit}`} />
         <Meta label="Baseline" value={`${formatNumber(kpi.baseline, digits)}${kpi.unit}`} />
       </div>
 
-      <div className="h-[30px] w-full">
+      <div className="h-[34px] w-full pl-1">
         {chartData.length > 1 ? (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
@@ -56,8 +61,8 @@ export function OptimizationKpiCard({ kpi, onOpen }: OptimizationKpiCardProps) {
                 type="monotone"
                 dataKey="v"
                 stroke={accent}
-                fill={`${accent}22`}
-                strokeWidth={1.6}
+                fill={`${accent}33`}
+                strokeWidth={1.8}
                 isAnimationActive={false}
               />
             </AreaChart>
@@ -65,9 +70,9 @@ export function OptimizationKpiCard({ kpi, onOpen }: OptimizationKpiCardProps) {
         ) : null}
       </div>
 
-      <div className="flex items-center justify-between text-[10.5px] text-[var(--muted-2)]">
-        <span className="uppercase tracking-[0.06em]">{kpi.status.replaceAll("_", " ")}</span>
-        <span className="font-mono">
+      <div className="flex items-center justify-between pl-1 text-[10.5px] text-[#8fa6c0]">
+        <span className="uppercase tracking-[0.08em]">{kpi.status.replaceAll("_", " ")}</span>
+        <span className="font-mono text-[#c5d8ec]">
           {kpi.timestamp ? formatTime(kpi.timestamp) : "—"}
         </span>
       </div>
@@ -77,9 +82,11 @@ export function OptimizationKpiCard({ kpi, onOpen }: OptimizationKpiCardProps) {
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1">
-      <div className="text-[9px] uppercase tracking-[0.08em] text-[var(--muted-2)]">{label}</div>
-      <div className="font-mono text-[11px] text-[var(--text)]">{value}</div>
+    <div className="rounded-[6px] border border-[rgba(107,193,242,0.2)] bg-[rgba(107,193,242,0.07)] px-2 py-1.5">
+      <div className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#9ec9ef]">
+        {label}
+      </div>
+      <div className="font-mono text-[11px] font-semibold text-[#f2f7fc]">{value}</div>
     </div>
   );
 }
