@@ -40,9 +40,7 @@ export function EnterpriseControls() {
     void queryClient.invalidateQueries({ queryKey: ["test-events"] });
     void queryClient.invalidateQueries({ queryKey: ["maintenance"] });
     void queryClient.invalidateQueries({ queryKey: ["test-limits"] });
-    if (waferId) {
-      void queryClient.invalidateQueries({ queryKey: ["wafer", waferId] });
-    }
+    void queryClient.invalidateQueries({ queryKey: ["wafer"] });
   };
 
   return (

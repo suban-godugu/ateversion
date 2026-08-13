@@ -13,29 +13,35 @@ export function useWaferDies(waferId: string | null | undefined) {
   const setLifecycle = useWaferStore((s) => s.setLifecycle);
 
   const query = useQuery({
-    queryKey: ["wafers", waferId, "dies"],
+    queryKey: ["wafer", waferId, "dies"],
     queryFn: () => fetchWaferDies(waferId!),
     enabled: Boolean(waferId),
-    staleTime: 10_000,
+    staleTime: 5_000,
+    refetchOnMount: "always",
   });
 
   useEffect(() => {
-    if (query.data) {
-      hydrateDies(query.data.map(mapDieOut));
-    }
-  }, [query.data, hydrateDies]);
+    if (!waferId || !query.data) return;
+    hydrateDies(query.data.map(mapDieOut));
+  }, [query.data, waferId, hydrateDies]);
 
   useEffect(() => {
     if (query.isError) setLifecycle("error");
     else if (query.isSuccess && query.data.length === 0) setLifecycle("empty");
   }, [query.isError, query.isSuccess, query.data, setLifecycle]);
 
-  const dies: Die[] = useMemo(() => Object.values(diesById), [diesById]);
+  const dies: Die[] = useMemo(() => {
+    if (query.data?.length && waferId) {
+      return query.data.map(mapDieOut).filter((d) => d.wafer_id === waferId);
+    }
+    if (!waferId) return [];
+    return Object.values(diesById).filter((d) => d.wafer_id === waferId);
+  }, [query.data, diesById, waferId]);
 
   return {
     dies,
     diesById,
-    isLoading: query.isLoading,
+    isLoading: query.isLoading || query.isFetching,
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,
