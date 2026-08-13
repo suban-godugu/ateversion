@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Area,
   AreaChart,
@@ -16,7 +17,8 @@ import { useKpiHistory } from "@/hooks/useKpiHistory";
 import { formatNumber, formatTime } from "@/lib/utils";
 
 /**
- * KPI drill-down as a centered popup (not a right-edge slide drawer).
+ * KPI drill-down as a centered viewport popup.
+ * Portaled to document.body so parent transform/animation cannot clip it.
  */
 export function KpiDetailDrawer({
   kpiId,
@@ -25,6 +27,7 @@ export function KpiDetailDrawer({
   kpiId: string;
   onClose: () => void;
 }) {
+  const [mounted, setMounted] = useState(false);
   const detailQuery = useKpiDetail(kpiId);
   const { history, isLoading: histLoading } = useKpiHistory(kpiId, 48);
   const kpi = detailQuery.data;
@@ -35,6 +38,10 @@ export function KpiDetailDrawer({
     v: p.value,
     label: formatTime(p.timestamp),
   }));
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -49,9 +56,11 @@ export function KpiDetailDrawer({
     };
   }, [onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 sm:p-6"
       onClick={onClose}
       role="presentation"
     >
@@ -59,10 +68,14 @@ export function KpiDetailDrawer({
         role="dialog"
         aria-modal="true"
         aria-label={kpi?.name ? `${kpi.name} KPI detail` : "KPI detail"}
-        className="vl-surface vl-enter flex max-h-[min(88vh,820px)] w-full max-w-[720px] flex-col overflow-hidden"
+        className="flex max-h-[min(90vh,860px)] w-full max-w-[720px] flex-col overflow-hidden rounded-[8px] border border-[var(--line)] bg-[var(--panel)] shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.03), transparent 36%), var(--panel)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-start justify-between border-b border-[var(--line)] px-5 py-4">
+        <header className="flex shrink-0 items-start justify-between border-b border-[var(--line)] px-5 py-4">
           <div>
             <div className="vl-label">KPI Analytics</div>
             <h2 className="font-display mt-1 text-[22px] font-semibold text-[var(--text)]">
@@ -78,9 +91,13 @@ export function KpiDetailDrawer({
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {detailQuery.isLoading || !kpi ? (
             <LoadingState label="Loading KPI detail…" />
+          ) : detailQuery.isError ? (
+            <div className="rounded-[6px] border border-[var(--red)]/40 bg-[var(--red-dim)] px-3 py-4 text-[12px] text-[var(--red)]">
+              Unable to load KPI detail. Close and try again.
+            </div>
           ) : (
             <>
               <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -93,10 +110,13 @@ export function KpiDetailDrawer({
                   value={`${kpi.improvement >= 0 ? "+" : ""}${formatNumber(kpi.improvement, digits)}${kpi.unit}`}
                   accent={kpi.improvement >= 0 ? "var(--green)" : "var(--red)"}
                 />
-                <Tile label="Trend / Status" value={`${kpi.trend} · ${kpi.status.replaceAll("_", " ")}`} />
+                <Tile
+                  label="Trend / Status"
+                  value={`${kpi.trend} · ${String(kpi.status).replace(/_/g, " ")}`}
+                />
               </div>
 
-              <div className="mb-4 grid grid-cols-4 gap-2">
+              <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <Tile label="Lots" value={String(kpi.lots)} compact />
                 <Tile label="Wafers" value={String(kpi.wafers)} compact />
                 <Tile label="Testers" value={String(kpi.testers)} compact />
@@ -104,9 +124,13 @@ export function KpiDetailDrawer({
               </div>
 
               <div className="vl-label mb-2">Historical Trend</div>
-              <div className="mb-5 h-[200px] rounded-[6px] border border-[var(--line)] bg-[var(--panel-2)] p-2">
+              <div className="mb-5 h-[220px] rounded-[6px] border border-[var(--line)] bg-[var(--panel-2)] p-2">
                 {histLoading ? (
                   <LoadingState label="Loading history…" />
+                ) : chartData.length === 0 ? (
+                  <div className="flex h-full items-center justify-center text-[12px] text-[var(--muted)]">
+                    No history points yet
+                  </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
@@ -135,18 +159,24 @@ export function KpiDetailDrawer({
 
               <div className="vl-label mb-2">Recent Events</div>
               <div className="flex flex-col gap-2">
-                {(kpi.recent_events ?? []).map((ev) => (
-                  <div
-                    key={ev.event_id}
-                    className="rounded-[6px] border border-[var(--line)] bg-[var(--panel-2)] px-3 py-2 text-[11px]"
-                  >
-                    <div className="mb-1 flex justify-between text-[var(--muted-2)]">
-                      <span className="uppercase">{ev.tag}</span>
-                      <span className="font-mono">{formatTime(ev.timestamp)}</span>
-                    </div>
-                    <div className="text-[var(--text)]">{ev.text}</div>
+                {(kpi.recent_events ?? []).length === 0 ? (
+                  <div className="rounded-[6px] border border-[var(--line)] bg-[var(--panel-2)] px-3 py-3 text-[11px] text-[var(--muted)]">
+                    No recent events for this KPI
                   </div>
-                ))}
+                ) : (
+                  (kpi.recent_events ?? []).map((ev) => (
+                    <div
+                      key={ev.event_id}
+                      className="rounded-[6px] border border-[var(--line)] bg-[var(--panel-2)] px-3 py-2 text-[11px]"
+                    >
+                      <div className="mb-1 flex justify-between text-[var(--muted-2)]">
+                        <span className="uppercase">{ev.tag}</span>
+                        <span className="font-mono">{formatTime(ev.timestamp)}</span>
+                      </div>
+                      <div className="text-[var(--text)]">{ev.text}</div>
+                    </div>
+                  ))
+                )}
               </div>
 
               <p className="mt-4 text-[11px] leading-relaxed text-[var(--muted)]">
@@ -159,7 +189,8 @@ export function KpiDetailDrawer({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
