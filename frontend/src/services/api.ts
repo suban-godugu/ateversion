@@ -14,8 +14,9 @@ import type { Kpi, KpiDetail, KpiHistoryResponse } from "@/types/kpi";
 import type { MaintenanceList, MaintenanceTesterDetail } from "@/types/maintenance";
 
 import { useAuthStore } from "@/stores/authStore";
+import type { ShmooUploadResponse } from "@/types/shmoo";
 
-function getApiBase(): string {
+export function getApiBase(): string {
   // On Vercel, always use same-origin /api proxy (fixes browser "Failed to fetch" / CORS).
   if (typeof window !== "undefined" && /\.vercel\.app$/i.test(window.location.hostname)) {
     return "/api";
@@ -61,8 +62,14 @@ async function requestJson<T>(path: string, init?: RequestInit, retries = 2): Pr
         ...init,
       });
       if (res.status === 401) {
+        // Real auth rejection only — do not clear on 5xx/network (handled below).
         useAuthStore.getState().clearSession();
         throw new Error(`API ${path} unauthorized`);
+      }
+      // Proxy/backend cold-start often returns 502/503; never treat as logout.
+      if ((res.status === 502 || res.status === 503) && attempt < retries) {
+        await sleep(400 * 2 ** attempt);
+        continue;
       }
       if (res.status === 429 && attempt < retries) {
         await sleep(300 * 2 ** attempt);
@@ -287,7 +294,17 @@ export async function uploadFloorFile(file: File, kind: string = "auto") {
   }
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    throw new Error(`Upload failed: ${res.status}${detail ? ` ${detail}` : ""}`);
+    let message = `Upload failed: ${res.status}`;
+    if (detail) {
+      try {
+        const parsed = JSON.parse(detail) as { detail?: unknown };
+        if (typeof parsed.detail === "string") message = parsed.detail;
+        else message = `${message} ${detail}`;
+      } catch {
+        message = `${message} ${detail}`;
+      }
+    }
+    throw new Error(message);
   }
   return res.json() as Promise<{
     status: string;
@@ -299,4 +316,84 @@ export async function uploadFloorFile(file: File, kind: string = "auto") {
     events_accepted?: number;
     lines?: number;
   }>;
+}
+
+export async function uploadShmooFile(file: File): Promise<ShmooUploadResponse> {
+  const form = new FormData();
+  form.append("file", file);
+  try {
+    const res = await fetch(`${getApiBase()}/shmoo/upload`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        ...authHeaders(),
+      },
+      body: form,
+    });
+    if (res.status === 401) {
+      useAuthStore.getState().clearSession();
+      throw new Error("Shmoo upload unauthorized");
+    }
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      let message = `Shmoo upload failed: ${res.status}`;
+      if (detail) {
+        try {
+          const parsed = JSON.parse(detail) as { detail?: unknown };
+          if (typeof parsed.detail === "string") message = parsed.detail;
+          else message = `${message} ${detail}`;
+        } catch {
+          message = `${message} ${detail}`;
+        }
+      }
+      throw new Error(message);
+    }
+    return res.json() as Promise<ShmooUploadResponse>;
+  } catch (err) {
+    throw networkErrorMessage(err, "Shmoo upload failed");
+  }
+}
+
+/** Absolute URL for a Shmoo plot path returned by the API (`/api/shmoo/plot/...`). */
+export function resolveShmooPlotUrl(plotUrl: string): string {
+  if (plotUrl.startsWith("http")) return plotUrl;
+  const base = getApiBase();
+  if (plotUrl.startsWith("/api/") && base.endsWith("/api")) {
+    return `${base.replace(/\/api$/, "")}${plotUrl}`;
+  }
+  if (plotUrl.startsWith("/")) {
+    const origin = base.replace(/\/api\/?$/, "");
+    return `${origin}${plotUrl}`;
+  }
+  return `${base}/${plotUrl.replace(/^\//, "")}`;
+}
+
+export async function downloadShmooReport(
+  sessionId: string,
+  textMode: "template" | "llm" = "template",
+): Promise<Blob> {
+  try {
+    const res = await fetch(`${getApiBase()}/shmoo/report`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        Accept: "application/pdf",
+        "Content-Type": "application/json",
+        ...authHeaders(),
+      },
+      body: JSON.stringify({ session_id: sessionId, text_mode: textMode }),
+    });
+    if (res.status === 401) {
+      useAuthStore.getState().clearSession();
+      throw new Error("Report download unauthorized");
+    }
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      throw new Error(`Report failed: ${res.status}${detail ? ` ${detail}` : ""}`);
+    }
+    return res.blob();
+  } catch (err) {
+    throw networkErrorMessage(err, "Shmoo report failed");
+  }
 }

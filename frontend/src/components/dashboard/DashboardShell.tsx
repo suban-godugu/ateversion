@@ -6,12 +6,14 @@ import { ErrorState } from "@/components/common/ErrorState";
 import { LiveStatusIndicator } from "@/components/common/LiveStatusIndicator";
 import { LoadingState } from "@/components/common/LoadingState";
 import { VerilumenBrand } from "@/components/branding/VerilumenBrand";
+import { SessionControl } from "@/components/auth/SessionControl";
 import { EnterpriseControls } from "@/components/dashboard/EnterpriseControls";
 import { TestFloorEventLog } from "@/components/events/TestFloorEventLog";
 import { HeaderStats } from "@/components/kpi/HeaderStats";
 import { OptimizationKpiGrid } from "@/components/kpi/OptimizationKpiGrid";
 import { DynamicTestLimits } from "@/components/limits/DynamicTestLimits";
 import { PredictiveMaintenanceCard } from "@/components/maintenance/PredictiveMaintenanceCard";
+import { ShmooOptimizationPanel } from "@/components/shmoo/ShmooOptimizationPanel";
 import { UploadControl } from "@/components/uploads/UploadControl";
 import { WaferMap } from "@/components/wafer/WaferMap";
 import { YieldSummary } from "@/components/wafer/YieldSummary";
@@ -72,7 +74,7 @@ export function DashboardShell() {
     <div className="mx-auto max-w-[1400px] px-7 pb-[90px] pt-[30px]">
       <DisconnectedBanner />
 
-      <header className="vl-header vl-enter mb-[28px] flex flex-wrap items-end justify-between gap-6">
+      <header className="vl-header vl-enter relative z-50 mb-[28px] flex flex-wrap items-end justify-between gap-6">
         <div>
           <VerilumenBrand size="header" />
         </div>
@@ -84,6 +86,7 @@ export function DashboardShell() {
               <div className="vl-label mb-1">Live Connection</div>
               <LiveStatusIndicator />
             </div>
+            <SessionControl />
           </div>
         </div>
       </header>
@@ -92,7 +95,15 @@ export function DashboardShell() {
         <EnterpriseControls />
       </div>
 
-      <section className="vl-surface-deep vl-enter vl-enter-delay-2 mb-[30px] grid grid-cols-1 gap-[26px] p-6 md:grid-cols-[340px_1fr]">
+      {/* Shmoo results sit above the wafer map so uploads are immediately visible */}
+      <div className="vl-enter vl-enter-delay-2">
+        <ShmooOptimizationPanel />
+      </div>
+
+      <section
+        id="live-wafer-map"
+        className="vl-surface-deep vl-enter vl-enter-delay-2 mb-[30px] grid grid-cols-1 gap-[26px] p-6 md:grid-cols-[340px_1fr]"
+      >
         <WaferMap waferId={wafer?.wafer_id ?? null} />
         <YieldSummary wafer={wafer} />
       </section>

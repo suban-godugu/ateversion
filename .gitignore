@@ -16,6 +16,14 @@ frontend/.env*.local
 *.db
 pgdata/
 **/.pgdata/
+backend/data/shmoo/uploads/*
+!backend/data/shmoo/uploads/.gitkeep
+backend/data/shmoo/reports/*
+!backend/data/shmoo/reports/.gitkeep
+backend/data/shmoo/*.json
+backend/data/shmoo/*.log
 .DS_Store
 .idea/
 .vscode/
+.vercel
+.env*

@@ -252,9 +252,10 @@ export function useWaferRealtime(waferId: string | null | undefined, enabled = t
           return;
         }
         if (ev.code === 4401 || ev.code === 4403) {
+          // Do not clear the JWT here — WS auth can fail while REST session is still valid
+          // (proxy blips, cold start). REST 401 handling is the source of truth for logout.
           setError(ev.code === 4401 ? "WebSocket unauthorized" : "WebSocket forbidden");
           setStatus("OFFLINE");
-          useAuthStore.getState().clearSession();
           return;
         }
         setStatus("RECONNECTING");

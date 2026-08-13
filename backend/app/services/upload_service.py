@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ingestion.wafer_image_ingest import image_to_die_bins
-from app.models.entities import DashboardState, Wafer
+from app.models.entities import DashboardState, Lot, Wafer
 from app.schemas.events import EventType, TelemetryEvent
 from app.services.telemetry_service import ingest_events
 
@@ -53,6 +53,53 @@ def classify_upload(filename: str, declared_kind: str | None) -> str:
     )
 
 
+async def _ensure_upload_wafer(db: AsyncSession) -> tuple[str, str, str, str]:
+    """Create a minimal lot/wafer when the DB has no active wafer (fresh local installs)."""
+    lot_id = "UPLOAD-LOT"
+    wafer_id = f"W-UPLOAD-{datetime.utcnow().strftime('%Y%m%d')}"
+    tester_id = "ATE-04"
+    site_id = "1"
+
+    if await db.get(Lot, lot_id) is None:
+        db.add(
+            Lot(
+                lot_id=lot_id,
+                status="active",
+                started_at=datetime.utcnow(),
+            )
+        )
+
+    if await db.get(Wafer, wafer_id) is None:
+        db.add(
+            Wafer(
+                wafer_id=wafer_id,
+                lot_id=lot_id,
+                tester_id=None,
+                site_id=None,
+                status="testing",
+                caption=f"Upload target · Lot {lot_id}",
+                updated_at=datetime.utcnow(),
+            )
+        )
+
+    state = await db.get(DashboardState, 1)
+    if state is None:
+        db.add(
+            DashboardState(
+                id=1,
+                lots_in_test=1,
+                active_wafer_id=wafer_id,
+                updated_at=datetime.utcnow(),
+            )
+        )
+    else:
+        state.active_wafer_id = wafer_id
+        state.updated_at = datetime.utcnow()
+
+    await db.flush()
+    return wafer_id, lot_id, tester_id, site_id
+
+
 async def _active_context(db: AsyncSession) -> tuple[str, str, str, str]:
     state = await db.get(DashboardState, 1)
     wafer_id = state.active_wafer_id if state else None
@@ -72,7 +119,7 @@ async def _active_context(db: AsyncSession) -> tuple[str, str, str, str]:
     ).scalar_one_or_none()
     if wafer:
         return wafer.wafer_id, wafer.lot_id, wafer.tester_id or tester_id, wafer.site_id or site_id
-    raise HTTPException(status_code=400, detail="No active wafer available for upload ingest")
+    return await _ensure_upload_wafer(db)
 
 
 async def _next_seq(db: AsyncSession) -> int:

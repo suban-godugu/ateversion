@@ -6,9 +6,14 @@ import { fetchMe, login } from "@/services/api";
 import { useAuthStore } from "@/stores/authStore";
 import type { AppRole } from "@/stores/authStore";
 
+function isUnauthorizedError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /unauthorized|401|invalid or expired token|not authenticated/i.test(msg);
+}
+
 /**
  * Ensures a JWT session before rendering the dashboard.
- * Demo defaults can be overridden via NEXT_PUBLIC_DEMO_USER / NEXT_PUBLIC_DEMO_PASSWORD.
+ * Shows the login form when there is no stored session (no silent auto-login).
  */
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.accessToken);
@@ -24,6 +29,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [restoring, setRestoring] = useState(false);
 
   useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
@@ -31,55 +37,51 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return unsub;
   }, []);
 
+  // Sign out clears the token — return to the login form.
+  useEffect(() => {
+    if (!token) {
+      setReady(false);
+      setRestoring(false);
+    }
+  }, [token]);
+
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
     (async () => {
       const current = useAuthStore.getState().accessToken;
       if (!current) {
-        // Attempt silent demo login for local ops tooling
-        try {
-          setBusy(true);
-          const res = await login(username, password);
-          if (cancelled) return;
-          setSession({
-            accessToken: res.access_token,
-            username: res.username,
-            role: res.role as AppRole,
-          });
-          const me = await fetchMe();
-          if (!cancelled) {
-            setSession({
-              accessToken: res.access_token,
-              username: me.username,
-              role: me.role as AppRole,
-              permissions: me.permissions,
-            });
-            setReady(true);
-          }
-        } catch {
-          if (!cancelled) setReady(false);
-        } finally {
-          if (!cancelled) setBusy(false);
-        }
+        setReady(false);
+        setRestoring(false);
         return;
       }
+
+      setRestoring(true);
       try {
         const me = await fetchMe();
-        if (!cancelled) {
-          setSession({
-            accessToken: current,
-            username: me.username,
-            role: me.role as AppRole,
-            permissions: me.permissions,
-          });
-          setReady(true);
-        }
-      } catch {
-        if (!cancelled) {
+        if (cancelled) return;
+        setSession({
+          accessToken: current,
+          username: me.username,
+          role: me.role as AppRole,
+          permissions: me.permissions,
+        });
+        setReady(true);
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        // Only wipe the stored JWT when the server rejects it.
+        // Network / cold-start failures must not force re-login after refresh.
+        if (isUnauthorizedError(err)) {
           clearSession();
           setReady(false);
+          setError("Session expired. Please sign in again.");
+        } else {
+          setReady(true);
+          setError(null);
         }
+      } finally {
+        if (!cancelled) setRestoring(false);
       }
     })();
     return () => {
@@ -88,7 +90,23 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated]);
 
+  if (!hydrated || restoring) {
+    return (
+      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
+        <div className="vl-enter mb-6">
+          <VerilumenBrand size="auth" />
+        </div>
+        <p className="text-[12px] text-[var(--muted)]">
+          {restoring ? "Restoring session…" : "Loading…"}
+        </p>
+      </div>
+    );
+  }
+
   if (ready && token) return <>{children}</>;
+
+  // After Sign out, reset ready so the next successful login can enter the dashboard.
+  // (token is already null from clearSession)
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
@@ -113,16 +131,25 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                 username: res.username,
                 role: res.role as AppRole,
               });
-              const me = await fetchMe();
-              setSession({
-                accessToken: res.access_token,
-                username: me.username,
-                role: me.role as AppRole,
-                permissions: me.permissions,
-              });
+              try {
+                const me = await fetchMe();
+                setSession({
+                  accessToken: res.access_token,
+                  username: me.username,
+                  role: me.role as AppRole,
+                  permissions: me.permissions,
+                });
+              } catch (meErr) {
+                // Token was issued; only fail the login UI if /auth/me rejects it.
+                if (isUnauthorizedError(meErr)) {
+                  clearSession();
+                  throw meErr;
+                }
+              }
               setReady(true);
             } catch (err) {
               setError(err instanceof Error ? err.message : "Login failed");
+              setReady(false);
             } finally {
               setBusy(false);
             }
