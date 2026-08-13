@@ -1,3 +1,4 @@
+import ssl
 from collections.abc import AsyncGenerator
 from urllib.parse import urlparse
 
@@ -11,15 +12,22 @@ class Base(DeclarativeBase):
     pass
 
 
+def _render_ssl_context() -> ssl.SSLContext:
+    # Render Postgres presents a self-signed cert; require TLS but skip verify.
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    return ctx
+
+
 def _connect_args(database_url: str) -> dict:
     if database_url.startswith("sqlite"):
         return {"check_same_thread": False}
-    # Render / cloud Postgres typically requires TLS for asyncpg
     host = (urlparse(database_url).hostname or "").lower()
     if "render.com" in host or host.startswith("dpg-"):
-        return {"ssl": True}
+        return {"ssl": _render_ssl_context()}
     if "ssl=require" in database_url or "sslmode=require" in database_url:
-        return {"ssl": True}
+        return {"ssl": _render_ssl_context()}
     return {}
 
 
