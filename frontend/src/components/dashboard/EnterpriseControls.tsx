@@ -21,8 +21,60 @@ export function EnterpriseControls() {
   const streamMode = useOpsStore((s) => s.streamMode);
   const setLotId = useOpsStore((s) => s.setLotId);
   const setWaferId = useOpsStore((s) => s.setWaferId);
-  const setTesterId = useOpsStore((s) => s.setTesterId);
-  const setSiteId = useOpsStore((s) => s.setSiteId);
+  const setTesterIdRaw = useOpsStore((s) => s.setTesterId);
+  const setSiteIdRaw = useOpsStore((s) => s.setSiteId);
+  const setTesterId = (v: string) => {
+    // #region agent log
+    {
+      const body = JSON.stringify({
+        sessionId: "4c992b",
+        runId: "post-fix",
+        hypothesisId: "D",
+        location: "EnterpriseControls.tsx:setTesterId",
+        message: "user changed tester",
+        data: { from: useOpsStore.getState().testerId, to: v },
+        timestamp: Date.now(),
+      });
+      fetch("http://127.0.0.1:7849/ingest/4b5f2f89-6889-4769-a476-cb2a233561aa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "4c992b" },
+        body,
+      }).catch(() => {});
+      fetch("/debug-ingest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      }).catch(() => {});
+    }
+    // #endregion
+    setTesterIdRaw(v);
+  };
+  const setSiteId = (v: string) => {
+    // #region agent log
+    {
+      const body = JSON.stringify({
+        sessionId: "4c992b",
+        runId: "post-fix",
+        hypothesisId: "D",
+        location: "EnterpriseControls.tsx:setSiteId",
+        message: "user changed site",
+        data: { from: useOpsStore.getState().siteId, to: v },
+        timestamp: Date.now(),
+      });
+      fetch("http://127.0.0.1:7849/ingest/4b5f2f89-6889-4769-a476-cb2a233561aa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "4c992b" },
+        body,
+      }).catch(() => {});
+      fetch("/debug-ingest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      }).catch(() => {});
+    }
+    // #endregion
+    setSiteIdRaw(v);
+  };
   const setSince = useOpsStore((s) => s.setSince);
   const setUntil = useOpsStore((s) => s.setUntil);
   const toggleStreamMode = useOpsStore((s) => s.toggleStreamMode);
