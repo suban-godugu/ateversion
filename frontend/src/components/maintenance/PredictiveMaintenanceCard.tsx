@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { DetailPopup } from "@/components/common/DetailPopup";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { LoadingState } from "@/components/common/LoadingState";
@@ -178,126 +179,108 @@ function MaintenanceDetailDrawer({
     }));
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end bg-black/50" onClick={onClose}>
-      <aside
-        className="flex h-full w-full max-w-[460px] flex-col border-l border-[var(--line)] bg-[var(--panel)]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="flex items-start justify-between border-b border-[var(--line)] px-5 py-4">
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--muted-2)]">
-              Maintenance Detail
-            </div>
-            <h2 className="font-display mt-1 text-[20px] font-semibold">
-              {detail?.name ?? testerId}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded border border-[var(--line)] px-2 py-1 text-[11px] text-[var(--muted)]"
-          >
-            Close
-          </button>
-        </header>
-
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {loading || !detail ? (
-            <LoadingState label="Loading tester health…" />
-          ) : !detail.model_available ? (
-            <div className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-3 py-6 text-center text-[12px] text-[var(--muted)]">
-              Prediction unavailable
-            </div>
-          ) : (
-            <>
-              <div className="mb-3 text-[11px] uppercase tracking-[0.08em]" style={{ color: SEVERITY_COLORS[detail.overall_severity] }}>
-                Overall · {detail.overall_severity}
-              </div>
-
-              {detail.components.map((c) => (
-                <div key={c.asset_id} className="mb-3 rounded border border-[var(--line)] bg-[var(--panel-2)] p-3 text-[11.5px]">
-                  <div className="mb-1 font-semibold">{c.component ?? c.name}</div>
-                  {c.model_available && c.health_pct != null ? (
-                    <dl className="grid grid-cols-[120px_1fr] gap-y-1">
-                      <dt className="text-[var(--muted-2)]">Health</dt>
-                      <dd className="font-mono">{formatNumber(c.health_pct, 1)}%</dd>
-                      <dt className="text-[var(--muted-2)]">Failure Prob</dt>
-                      <dd className="font-mono">
-                        {c.failure_probability != null
-                          ? `${formatNumber(c.failure_probability * 100, 1)}%`
-                          : "—"}
-                      </dd>
-                      <dt className="text-[var(--muted-2)]">RUL</dt>
-                      <dd className="font-mono">
-                        {c.rul_days != null ? `${formatNumber(c.rul_days, 1)} days` : "—"}
-                      </dd>
-                      <dt className="text-[var(--muted-2)]">Confidence</dt>
-                      <dd className="font-mono">
-                        {c.confidence != null ? `${formatNumber(c.confidence * 100, 1)}%` : "—"}
-                      </dd>
-                      <dt className="text-[var(--muted-2)]">Severity</dt>
-                      <dd className="font-mono uppercase">{c.severity}</dd>
-                      <dt className="text-[var(--muted-2)]">Recommendation</dt>
-                      <dd>{c.recommended_action ?? "—"}</dd>
-                    </dl>
-                  ) : (
-                    <div className="text-[var(--muted)]">Prediction unavailable</div>
-                  )}
-                </div>
-              ))}
-
-              <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-2)]">
-                Historical Health
-              </div>
-              <div className="mb-5 h-[150px] rounded border border-[var(--line)] bg-[var(--panel-2)] p-2">
-                {series.length > 1 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={series}>
-                      <XAxis dataKey="t" tick={{ fill: "#56637A", fontSize: 10 }} />
-                      <YAxis domain={[0, 100]} tick={{ fill: "#56637A", fontSize: 10 }} width={32} />
-                      <Tooltip
-                        contentStyle={{
-                          background: "#0D131C",
-                          border: "1px solid #2A3648",
-                          fontSize: 11,
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="v"
-                        stroke="#F2B155"
-                        fill="#F2B15533"
-                        strokeWidth={1.6}
-                        isAnimationActive={false}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <EmptyState message="No health history yet." />
-                )}
-              </div>
-
-              <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-2)]">
-                Maintenance History
-              </div>
-              <div className="flex flex-col gap-2">
-                {(detail.history ?? []).map((h) => (
-                  <div
-                    key={h.history_id}
-                    className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-3 py-2 text-[11px]"
-                  >
-                    <div className="mb-1 flex justify-between text-[var(--muted-2)]">
-                      <span className="uppercase">{h.severity ?? h.event_type}</span>
-                      <span className="font-mono">{formatTime(h.created_at)}</span>
-                    </div>
-                    <div className="text-[var(--text)]">{h.detail}</div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+    <DetailPopup
+      eyebrow="Maintenance Detail"
+      title={detail?.name ?? testerId}
+      onClose={onClose}
+      wide
+    >
+      {loading || !detail ? (
+        <LoadingState label="Loading tester health…" />
+      ) : !detail.model_available ? (
+        <div className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-3 py-6 text-center text-[12px] text-[var(--muted)]">
+          Prediction unavailable
         </div>
-      </aside>
-    </div>
+      ) : (
+        <>
+          <div
+            className="mb-3 text-[11px] uppercase tracking-[0.08em]"
+            style={{ color: SEVERITY_COLORS[detail.overall_severity] }}
+          >
+            Overall · {detail.overall_severity}
+          </div>
+
+          {detail.components.map((c) => (
+            <div
+              key={c.asset_id}
+              className="mb-3 rounded border border-[var(--line)] bg-[var(--panel-2)] p-3 text-[11.5px]"
+            >
+              <div className="mb-1 font-semibold">{c.component ?? c.name}</div>
+              {c.model_available && c.health_pct != null ? (
+                <dl className="grid grid-cols-[120px_1fr] gap-y-1">
+                  <dt className="text-[var(--muted-2)]">Health</dt>
+                  <dd className="font-mono">{formatNumber(c.health_pct, 1)}%</dd>
+                  <dt className="text-[var(--muted-2)]">Failure Prob</dt>
+                  <dd className="font-mono">
+                    {c.failure_probability != null
+                      ? `${formatNumber(c.failure_probability * 100, 1)}%`
+                      : "—"}
+                  </dd>
+                  <dt className="text-[var(--muted-2)]">RUL</dt>
+                  <dd className="font-mono">
+                    {c.rul_days != null ? `${formatNumber(c.rul_days, 1)} days` : "—"}
+                  </dd>
+                  <dt className="text-[var(--muted-2)]">Confidence</dt>
+                  <dd className="font-mono">
+                    {c.confidence != null ? `${formatNumber(c.confidence * 100, 1)}%` : "—"}
+                  </dd>
+                  <dt className="text-[var(--muted-2)]">Severity</dt>
+                  <dd className="font-mono uppercase">{c.severity}</dd>
+                  <dt className="text-[var(--muted-2)]">Recommendation</dt>
+                  <dd>{c.recommended_action ?? "—"}</dd>
+                </dl>
+              ) : (
+                <div className="text-[var(--muted)]">Prediction unavailable</div>
+              )}
+            </div>
+          ))}
+
+          <div className="vl-label mb-2">Historical Health</div>
+          <div className="mb-5 h-[180px] rounded border border-[var(--line)] bg-[var(--panel-2)] p-2">
+            {series.length > 1 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={series}>
+                  <XAxis dataKey="t" tick={{ fill: "#56637A", fontSize: 10 }} />
+                  <YAxis domain={[0, 100]} tick={{ fill: "#56637A", fontSize: 10 }} width={32} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#0D131C",
+                      border: "1px solid #2A3648",
+                      fontSize: 11,
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="v"
+                    stroke="#F2B155"
+                    fill="#F2B15533"
+                    strokeWidth={1.6}
+                    isAnimationActive={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState message="No health history yet." />
+            )}
+          </div>
+
+          <div className="vl-label mb-2">Maintenance History</div>
+          <div className="flex flex-col gap-2">
+            {(detail.history ?? []).map((h) => (
+              <div
+                key={h.history_id}
+                className="rounded border border-[var(--line)] bg-[var(--panel-2)] px-3 py-2 text-[11px]"
+              >
+                <div className="mb-1 flex justify-between text-[var(--muted-2)]">
+                  <span className="uppercase">{h.severity ?? h.event_type}</span>
+                  <span className="font-mono">{formatTime(h.created_at)}</span>
+                </div>
+                <div className="text-[var(--text)]">{h.detail}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </DetailPopup>
   );
 }
