@@ -3,7 +3,7 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "VERILUMEN™ — ATE Intelligence",
+  title: "VERILUMEN — ATE Intelligence",
   description: "VERILUMEN ATE Intelligence — real-time semiconductor test-floor yield and optimization",
 };
 

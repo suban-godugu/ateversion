@@ -6,7 +6,7 @@ type VerilumenBrandProps = {
 };
 
 /**
- * Compact brand lockup: V emblem + VERILUMEN™ + ATE INTELLIGENCE.
+ * Compact brand lockup: V emblem + VERILUMEN + ATE INTELLIGENCE.
  * Full banner / tagline omitted for header density.
  */
 export function VerilumenBrand({ size = "header" }: VerilumenBrandProps) {
