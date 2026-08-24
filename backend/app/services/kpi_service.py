@@ -35,6 +35,7 @@ EVENT_KPI_MAP: dict[str, list[str]] = {
         "test_time_reduction",
         "vector_memory_optimization",
         "pattern_count_reduction",
+        "m_bist_shmoo",
     ],
 }
 
@@ -167,6 +168,9 @@ async def apply_kpi_updates_from_event(
 
 
 async def list_kpis(db: AsyncSession) -> KpisListOut:
+    from app.ingestion.seed import ensure_missing_kpi_defs
+
+    await ensure_missing_kpi_defs(db)
     rows = (await db.execute(select(KpiMetric).order_by(KpiMetric.title))).scalars().all()
     return KpisListOut(kpis=[to_kpi_out(m) for m in rows])
 

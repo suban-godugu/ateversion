@@ -125,6 +125,17 @@ KPI_DEFS = [
         "description": "Redundant-pattern elimination via coverage-preserving ATPG analysis.",
         "accent": "#6BC1F2",
     },
+    {
+        "key": "m_bist_shmoo",
+        "title": "M-BIST SHMOO",
+        "value": 18.7,
+        "previous": 17.2,
+        "unit": "%",
+        "baseline": 12.0,
+        "target": 22.0,
+        "description": "Memory BIST shmoo optimization — VDD/timing margin recovery and fail-signature clustering.",
+        "accent": "#A78BFA",
+    },
 ]
 
 MAINTENANCE_FEATURES = [
@@ -203,6 +214,58 @@ def _history_from_base(base: float, n: int = 24) -> tuple[list[float], list[dict
             }
         )
     return series, history
+
+
+async def ensure_missing_kpi_defs(db) -> int:
+    """Insert any KPI_DEFS rows that are missing (does not clear existing data)."""
+    from app.services.kpi_service import compute_improvement, compute_status, compute_trend
+
+    added = 0
+    for defn in KPI_DEFS:
+        existing = await db.get(KpiMetric, defn["key"])
+        if existing is not None:
+            continue
+        value = float(defn["value"])
+        previous = float(defn["previous"])
+        baseline = float(defn["baseline"])
+        target = float(defn["target"])
+        series, history = _history_from_base(value)
+        db.add(
+            KpiMetric(
+                key=defn["key"],
+                title=defn["title"],
+                value=value,
+                unit=defn["unit"],
+                baseline=baseline,
+                target=target,
+                previous_value=previous,
+                improvement=compute_improvement(value, previous),
+                status=compute_status(value, baseline, target),
+                description=defn["description"],
+                accent=defn["accent"],
+                trend=compute_trend(value, previous),
+                series=series,
+                history=history,
+            )
+        )
+        for point in history:
+            ts_raw = point.get("t") or point.get("timestamp")
+            val = point.get("v", point.get("value", value))
+            db.add(
+                OptimizationMetricHistory(
+                    history_id=str(uuid4()),
+                    metric_id=defn["key"],
+                    value=float(val),
+                    timestamp=datetime.fromisoformat(ts_raw)
+                    if isinstance(ts_raw, str)
+                    else datetime.utcnow(),
+                    source="ensure",
+                )
+            )
+        added += 1
+    if added:
+        await db.commit()
+    return added
 
 
 async def clear_all(db) -> None:

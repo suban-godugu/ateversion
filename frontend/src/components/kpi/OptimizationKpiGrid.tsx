@@ -3,8 +3,10 @@
 import type { ReactNode } from "react";
 import { ErrorState } from "@/components/common/ErrorState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { ExternalKpiPopup } from "@/components/kpi/ExternalKpiPopup";
 import { KpiDetailDrawer } from "@/components/kpi/KpiDetailDrawer";
 import { OptimizationKpiCard } from "@/components/kpi/OptimizationKpiCard";
+import { getKpiExternalUrl } from "@/lib/kpiExternalPages";
 import { useKpis } from "@/hooks/useKpis";
 import { useKpiStore } from "@/stores/kpiStore";
 
@@ -16,12 +18,14 @@ const ORDER = [
   "escape_prevention",
   "vector_memory_optimization",
   "pattern_count_reduction",
+  "m_bist_shmoo",
 ];
 
 export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
   const { kpis, isLoading, isError, refetch } = useKpis();
   const selectedKpiId = useKpiStore((s) => s.selectedKpiId);
   const selectKpi = useKpiStore((s) => s.selectKpi);
+  const kpisById = useKpiStore((s) => s.kpisById);
 
   const ordered = [...kpis].sort((a, b) => {
     const ia = ORDER.indexOf(a.id);
@@ -42,6 +46,12 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
     );
   }
 
+  const externalUrl = selectedKpiId ? getKpiExternalUrl(selectedKpiId) : undefined;
+  const selectedName =
+    (selectedKpiId && kpisById[selectedKpiId]?.name) ||
+    ordered.find((k) => k.id === selectedKpiId)?.name ||
+    "KPI";
+
   return (
     <>
       <div className="mb-[26px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
@@ -50,7 +60,13 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
         ))}
         {children}
       </div>
-      {selectedKpiId ? (
+      {selectedKpiId && externalUrl ? (
+        <ExternalKpiPopup
+          title={selectedName}
+          url={externalUrl}
+          onClose={() => selectKpi(null)}
+        />
+      ) : selectedKpiId ? (
         <KpiDetailDrawer kpiId={selectedKpiId} onClose={() => selectKpi(null)} />
       ) : null}
     </>

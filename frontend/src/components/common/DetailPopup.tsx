@@ -45,7 +45,7 @@ export function DetailPopup({
         aria-modal="true"
         aria-label={title}
         className={`vl-popup pointer-events-auto flex max-h-[min(90vh,860px)] w-full flex-col overflow-hidden ${
-          wide ? "max-w-[720px]" : "max-w-[560px]"
+          wide ? "max-w-[1100px]" : "max-w-[560px]"
         }`}
       >
         <header className="flex shrink-0 items-start justify-between border-b border-[rgba(107,193,242,0.28)] px-5 py-4">
