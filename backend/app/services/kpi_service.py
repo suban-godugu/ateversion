@@ -36,6 +36,10 @@ EVENT_KPI_MAP: dict[str, list[str]] = {
         "vector_memory_optimization",
         "pattern_count_reduction",
         "m_bist_shmoo",
+        "shmoo_yield_analysis",
+        "shmoo_debugging",
+        "shmoo_binning",
+        "shmoo_characterization",
     ],
 }
 
@@ -137,6 +141,42 @@ async def update_kpi_value(
     series.append(value)
     metric.series = series[-48:]
     return metric
+
+
+async def apply_shmoo_results_to_kpis(
+    db: AsyncSession,
+    results: dict[str, Any],
+    *,
+    at: datetime | None = None,
+) -> list[str]:
+    """Map a Shmoo ML results dict onto the parent + 4 child SHMOO KPI rows."""
+    from app.ingestion.seed import ensure_missing_kpi_defs
+
+    await ensure_missing_kpi_defs(db)
+
+    updated: list[str] = []
+    n_pass = float(results.get("n_pass") or 0)
+    n_fail = float(results.get("n_fail") or 0)
+    total = n_pass + n_fail
+    pass_rate = (n_pass / total * 100.0) if total > 0 else 0.0
+    fail_rate = (n_fail / total * 100.0) if total > 0 else 0.0
+    cv_pct = float(results.get("cv_accuracy") or 0) * 100.0
+    r2_pct = float(results.get("boundary_r2") or 0) * 100.0
+    # Binning proxy until multi-device binning is exposed by the ATE Shmoo API
+    binning_pct = pass_rate
+
+    mapping = {
+        "m_bist_shmoo": cv_pct,
+        "shmoo_yield_analysis": pass_rate,
+        "shmoo_debugging": fail_rate,
+        "shmoo_binning": binning_pct,
+        "shmoo_characterization": r2_pct,
+    }
+    for key, value in mapping.items():
+        m = await update_kpi_value(db, key, round(value, 4), at=at)
+        if m:
+            updated.append(m.key)
+    return updated
 
 
 async def apply_kpi_updates_from_event(

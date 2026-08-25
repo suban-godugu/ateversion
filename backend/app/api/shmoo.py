@@ -37,6 +37,9 @@ async def upload_shmoo(
     Requires WRITE_TELEMETRY.
     """
     result = await process_shmoo_upload(file)
+    from app.services.kpi_service import apply_shmoo_results_to_kpis
+
+    await apply_shmoo_results_to_kpis(db, result.get("results") or {})
     await AuditLogRepository(db).write(
         actor=user.username,
         action="shmoo_upload",

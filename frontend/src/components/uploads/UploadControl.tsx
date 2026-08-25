@@ -133,6 +133,7 @@ export function UploadControl() {
         setMessage(
           `Uploaded ${res.filename ?? file.name} · CV ${(res.results.cv_accuracy * 100).toFixed(1)}% · open SHMOO KPI`,
         );
+        void queryClient.invalidateQueries({ queryKey: ["kpis"] });
         // Keep popover open so the filename/success stay visible.
         scrollToSection("optimization-parameters");
         selectKpi("m_bist_shmoo");

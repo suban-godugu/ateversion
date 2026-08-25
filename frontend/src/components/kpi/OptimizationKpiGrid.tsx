@@ -19,10 +19,18 @@ const ORDER = [
   "vector_memory_optimization",
   "pattern_count_reduction",
   "m_bist_shmoo",
+  "shmoo_yield_analysis",
+  "shmoo_debugging",
+  "shmoo_binning",
+  "shmoo_characterization",
 ];
 
 const DISPLAY_NAMES: Record<string, string> = {
-  m_bist_shmoo: "SHMOO ML Optimization System",
+  m_bist_shmoo: "SHMOO ML-Based Optimization",
+  shmoo_yield_analysis: "Yield Analysis",
+  shmoo_debugging: "Debugging",
+  shmoo_binning: "Binning",
+  shmoo_characterization: "Characterization",
 };
 
 function displayName(kpiId: string, fallback: string): string {
