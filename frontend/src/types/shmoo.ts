@@ -49,4 +49,9 @@ export interface ShmooUploadResponse {
   meta: ShmooMeta;
   results: ShmooResults;
   plot_url: string;
+  plot_urls?: {
+    character?: string;
+    yield?: string;
+    debug?: string;
+  };
 }

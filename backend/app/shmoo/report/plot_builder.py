@@ -30,20 +30,20 @@ def build_shmoo_plot(
     save_path: str = None,
     as_json: bool  = False,
     as_base64: bool = False,
+    variant: str = "character",
 ):
     """
     Builds the Shmoo plot locally using Matplotlib.
-    
-    Parameters
-    ----------
-    df : pd.DataFrame
-    results : ShmooResults
-    save_path : str, optional
-        If provided, saves light-theme PNG to disk (for PDF report).
-    as_base64 : bool, optional
-        If True, returns base64 data URI string `data:image/png;base64,...` (for Web UI).
+
+    variant:
+      - character: full PASS/FAIL + boundary + recommended OP (default)
+      - yield: PASS-focused yield view
+      - debug: FAIL-focused debug view
     """
     is_web = as_json or as_base64
+    variant = (variant or "character").lower()
+    if variant not in {"character", "yield", "debug"}:
+        variant = "character"
 
     # ── Normalize DataFrame Strings for Robust Plotting ────────────────────────
     df = df.copy()
@@ -64,28 +64,46 @@ def build_shmoo_plot(
     ax.set_facecolor(card_bg)
     ax.grid(True, color=grid_color, linestyle='--', linewidth=0.8, alpha=0.7)
 
-    # ── Scatter: PASS ─────────────────────────────────────────────────────────
     pass_mask = df['Test_Result'].isin(['PASS', 'PASSED', '1', 'TRUE', 'P'])
-    if pass_mask.any():
+    fail_mask = ~pass_mask
+
+    show_pass = variant in {"character", "yield"}
+    show_fail = variant in {"character", "debug"}
+
+    # ── Scatter: PASS ─────────────────────────────────────────────────────────
+    if show_pass and pass_mask.any():
         pass_df = df[pass_mask]
         ax.scatter(
             pass_df['VDD_V'], pass_df['Frequency_GHz'],
-            c=COLOURS['PASS'], s=28, marker='s', alpha=0.85,
+            c=COLOURS['PASS'], s=28, marker='s', alpha=0.85 if variant != "yield" else 0.95,
             label='PASS', zorder=3
         )
 
     # ── Scatter: FAIL codes ───────────────────────────────────────────────────
-    fail_mask = ~pass_mask
-    if fail_mask.any():
+    if show_fail and fail_mask.any():
         fail_df = df[fail_mask]
         for code in fail_df['Failure_Code'].unique():
             sub = fail_df[fail_df['Failure_Code'] == code]
             color = COLOURS.get(code, '#e74c3c')
             ax.scatter(
                 sub['VDD_V'], sub['Frequency_GHz'],
-                c=color, s=28, marker='s', alpha=0.85,
+                c=color, s=28, marker='s', alpha=0.85 if variant != "debug" else 0.95,
                 label=f'FAIL ({code})', zorder=3
             )
+
+    # Dim opposite class lightly for context on focused variants
+    if variant == "yield" and fail_mask.any():
+        fail_df = df[fail_mask]
+        ax.scatter(
+            fail_df['VDD_V'], fail_df['Frequency_GHz'],
+            c='#64748b', s=12, marker='s', alpha=0.25, label='FAIL (dim)', zorder=2
+        )
+    if variant == "debug" and pass_mask.any():
+        pass_df = df[pass_mask]
+        ax.scatter(
+            pass_df['VDD_V'], pass_df['Frequency_GHz'],
+            c='#64748b', s=12, marker='s', alpha=0.25, label='PASS (dim)', zorder=2
+        )
 
     # ── Predicted Boundary Line ───────────────────────────────────────────────
     vdd_min, vdd_max = float(df['VDD_V'].min()), float(df['VDD_V'].max())
@@ -114,8 +132,12 @@ def build_shmoo_plot(
     ax.axhline(results.recommended_freq, color=star_color, linestyle=':', linewidth=1.2, alpha=0.8)
     ax.axvline(results.recommended_vdd, color=star_color, linestyle=':', linewidth=1.2, alpha=0.8)
 
-    # ── Labels & Formatting ───────────────────────────────────────────────────
-    ax.set_title('SHMOO Characterization Plot — VDD vs Frequency', color=text_color, fontsize=13, fontweight='bold', pad=12)
+    titles = {
+        "character": "SHMOO Characterization — VDD vs Frequency",
+        "yield": "SHMOO Yield Analysis — PASS region",
+        "debug": "SHMOO Debugging — FAIL signatures",
+    }
+    ax.set_title(titles[variant], color=text_color, fontsize=13, fontweight='bold', pad=12)
     ax.set_xlabel('VDD (V)', color=muted_color, fontsize=10, fontweight='bold')
     ax.set_ylabel('Frequency (GHz)', color=muted_color, fontsize=10, fontweight='bold')
 
@@ -137,7 +159,7 @@ def build_shmoo_plot(
 
     plt.tight_layout()
 
-    # Save PNG to disk for PDF generator
+    # Save PNG to disk for PDF generator / web variants
     if save_path:
         fig.savefig(save_path, dpi=200, bbox_inches='tight', facecolor=fig.get_facecolor())
         plt.close(fig)

@@ -10,6 +10,7 @@ import { ShmooKpiPopup } from "@/components/kpi/ShmooKpiPopup";
 import { getKpiExternalUrl, SHMOO_CAPABILITIES } from "@/lib/kpiExternalPages";
 import { useKpis } from "@/hooks/useKpis";
 import { useKpiStore } from "@/stores/kpiStore";
+import { useShmooStore } from "@/stores/shmooStore";
 
 const ORDER = [
   "false_failure_reduction",
@@ -43,6 +44,8 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
   const selectedKpiId = useKpiStore((s) => s.selectedKpiId);
   const selectKpi = useKpiStore((s) => s.selectKpi);
   const kpisById = useKpiStore((s) => s.kpisById);
+  const plotUrls = useShmooStore((s) => s.plotUrls);
+  const plotUrl = useShmooStore((s) => s.plotUrl);
 
   const ordered = [...kpis]
     .filter((k) => !HIDDEN_KPI_IDS.has(k.id))
@@ -85,6 +88,24 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
     };
   });
 
+  const shmooPlots = [
+    {
+      key: "yield",
+      label: "Yield",
+      src: plotUrls.yield,
+    },
+    {
+      key: "debug",
+      label: "Debug",
+      src: plotUrls.debug,
+    },
+    {
+      key: "character",
+      label: "Character",
+      src: plotUrls.character ?? plotUrl,
+    },
+  ];
+
   return (
     <>
       <div className="mb-[26px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
@@ -94,6 +115,7 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
             kpi={{ ...kpi, name: displayName(kpi.id, kpi.name) }}
             onOpen={selectKpi}
             shmooMetrics={kpi.id === "m_bist_shmoo" ? shmooMetrics : undefined}
+            shmooPlots={kpi.id === "m_bist_shmoo" ? shmooPlots : undefined}
           />
         ))}
         {children}

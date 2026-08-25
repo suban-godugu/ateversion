@@ -83,7 +83,17 @@ async def process_shmoo_upload(file: UploadFile) -> dict[str, Any]:
         results = model.train_and_evaluate(df)
 
         web_plot_path = UPLOAD_DIR / f"{session_id}_web.png"
-        build_shmoo_plot(df, results, save_path=str(web_plot_path), as_base64=True)
+        yield_plot_path = UPLOAD_DIR / f"{session_id}_yield.png"
+        debug_plot_path = UPLOAD_DIR / f"{session_id}_debug.png"
+        build_shmoo_plot(
+            df, results, save_path=str(web_plot_path), as_base64=True, variant="character"
+        )
+        build_shmoo_plot(
+            df, results, save_path=str(yield_plot_path), as_base64=True, variant="yield"
+        )
+        build_shmoo_plot(
+            df, results, save_path=str(debug_plot_path), as_base64=True, variant="debug"
+        )
 
         _sessions[session_id] = {
             "df": df,
@@ -93,6 +103,8 @@ async def process_shmoo_upload(file: UploadFile) -> dict[str, Any]:
             "results": results,
             "save_path": str(save_path),
             "web_plot_path": str(web_plot_path),
+            "yield_plot_path": str(yield_plot_path),
+            "debug_plot_path": str(debug_plot_path),
             "filename": filename,
         }
     except ValueError as exc:
@@ -102,28 +114,43 @@ async def process_shmoo_upload(file: UploadFile) -> dict[str, Any]:
         save_path.unlink(missing_ok=True)
         raise HTTPException(status_code=500, detail=f"Shmoo analysis failed: {exc}") from exc
 
+    plot_urls = {
+        "character": f"/api/shmoo/plot/{session_id}/character.png",
+        "yield": f"/api/shmoo/plot/{session_id}/yield.png",
+        "debug": f"/api/shmoo/plot/{session_id}/debug.png",
+    }
     return {
         "session_id": session_id,
         "filename": filename,
         "meta": meta,
         "results": serialize_results(results),
         "plot_url": f"/api/shmoo/plot/{session_id}.png",
+        "plot_urls": plot_urls,
     }
 
 
-def plot_path_for(session_id: str) -> Path:
-    web_plot_path = UPLOAD_DIR / f"{session_id}_web.png"
-    if web_plot_path.exists():
-        return web_plot_path
+def plot_path_for(session_id: str, variant: str = "character") -> Path:
+    variant = (variant or "character").lower().removesuffix(".png")
+    if variant not in {"character", "yield", "debug", "web"}:
+        variant = "character"
+    # legacy alias
+    if variant == "web":
+        variant = "character"
+
+    suffix = "web" if variant == "character" else variant
+    path = UPLOAD_DIR / f"{session_id}_{suffix}.png"
+    if path.exists():
+        return path
 
     session = get_session(session_id)
     build_shmoo_plot(
         session["df"],
         session["results"],
-        save_path=str(web_plot_path),
+        save_path=str(path),
         as_base64=True,
+        variant="character" if suffix == "web" else variant,
     )
-    return web_plot_path
+    return path
 
 
 def generate_shmoo_report(session_id: str, text_mode: str = "template") -> Path:

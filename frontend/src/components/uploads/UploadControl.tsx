@@ -129,6 +129,11 @@ export function UploadControl() {
           meta: res.meta,
           results: res.results,
           plotUrl: res.plot_url,
+          plotUrls: {
+            character: res.plot_urls?.character ?? res.plot_url,
+            yield: res.plot_urls?.yield ?? null,
+            debug: res.plot_urls?.debug ?? null,
+          },
         });
         setMessage(
           `Uploaded ${res.filename ?? file.name} · CV ${(res.results.cv_accuracy * 100).toFixed(1)}% · open SHMOO KPI`,

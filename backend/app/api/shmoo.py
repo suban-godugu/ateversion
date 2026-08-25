@@ -53,11 +53,13 @@ async def upload_shmoo(
 
 @router.get("/plot/{session_id}.png")
 @router.get("/plot/{session_id}")
-async def get_shmoo_plot(session_id: str) -> FileResponse:
+@router.get("/plot/{session_id}/{variant}.png")
+@router.get("/plot/{session_id}/{variant}")
+async def get_shmoo_plot(session_id: str, variant: str = "character") -> FileResponse:
     """Serve dark-theme Shmoo plot PNG (UUID session id is the access key)."""
     sid = session_id.removesuffix(".png")
-    path = plot_path_for(sid)
-    return FileResponse(path, media_type="image/png", filename=f"{sid}_web.png")
+    path = plot_path_for(sid, variant=variant)
+    return FileResponse(path, media_type="image/png", filename=path.name)
 
 
 @router.post("/report")
