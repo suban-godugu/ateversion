@@ -17,6 +17,7 @@ from app.shmoo.text.template_engine import TemplateEngine
 BASE_DIR = Path(__file__).resolve().parents[2] / "data" / "shmoo"
 UPLOAD_DIR = BASE_DIR / "uploads"
 REPORT_DIR = BASE_DIR / "reports"
+LATEST_PATH = BASE_DIR / "latest.json"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -24,6 +25,57 @@ SHMOO_EXTS = {".csv", ".xlsx", ".xls"}
 
 # In-memory session store (same pattern as Flask shmoo_vl)
 _sessions: dict[str, dict[str, Any]] = {}
+_latest_session_id: str | None = None
+
+
+def _plot_urls_for(session_id: str) -> dict[str, str]:
+    return {
+        "character": f"/api/shmoo/plot/{session_id}/character.png",
+        "yield": f"/api/shmoo/plot/{session_id}/yield.png",
+        "debug": f"/api/shmoo/plot/{session_id}/debug.png",
+    }
+
+
+def _persist_latest(payload: dict[str, Any]) -> None:
+    global _latest_session_id
+    _latest_session_id = str(payload["session_id"])
+    try:
+        import json
+
+        LATEST_PATH.write_text(json.dumps(payload, default=str), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def get_latest_shmoo_summary() -> dict[str, Any] | None:
+    """Return last successful Shmoo run (plots + results) for live KPI card hydration."""
+    global _latest_session_id
+    import json
+
+    data: dict[str, Any] | None = None
+    if LATEST_PATH.exists():
+        try:
+            data = json.loads(LATEST_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            data = None
+    if not data and _latest_session_id and _latest_session_id in _sessions:
+        sid = _latest_session_id
+        session = _sessions[sid]
+        data = {
+            "session_id": sid,
+            "filename": session.get("filename"),
+            "meta": session.get("meta"),
+            "results": serialize_results(session["results"]),
+            "plot_url": f"/api/shmoo/plot/{sid}.png",
+            "plot_urls": _plot_urls_for(sid),
+        }
+    if not data:
+        return None
+    sid = str(data.get("session_id") or "")
+    # Ensure plot files still exist on disk
+    if sid and not (UPLOAD_DIR / f"{sid}_web.png").exists():
+        return None
+    return data
 
 
 def serialize_results(results: ShmooResults) -> dict[str, Any]:
@@ -114,12 +166,8 @@ async def process_shmoo_upload(file: UploadFile) -> dict[str, Any]:
         save_path.unlink(missing_ok=True)
         raise HTTPException(status_code=500, detail=f"Shmoo analysis failed: {exc}") from exc
 
-    plot_urls = {
-        "character": f"/api/shmoo/plot/{session_id}/character.png",
-        "yield": f"/api/shmoo/plot/{session_id}/yield.png",
-        "debug": f"/api/shmoo/plot/{session_id}/debug.png",
-    }
-    return {
+    plot_urls = _plot_urls_for(session_id)
+    payload = {
         "session_id": session_id,
         "filename": filename,
         "meta": meta,
@@ -127,6 +175,8 @@ async def process_shmoo_upload(file: UploadFile) -> dict[str, Any]:
         "plot_url": f"/api/shmoo/plot/{session_id}.png",
         "plot_urls": plot_urls,
     }
+    _persist_latest(payload)
+    return payload
 
 
 def plot_path_for(session_id: str, variant: str = "character") -> Path:

@@ -355,18 +355,49 @@ export async function uploadShmooFile(file: File): Promise<ShmooUploadResponse> 
   }
 }
 
+export async function fetchLatestShmoo(): Promise<ShmooUploadResponse | null> {
+  try {
+    const res = await fetch(`${getApiBase()}/shmoo/latest`, {
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        ...authHeaders(),
+      },
+    });
+    if (res.status === 401) {
+      useAuthStore.getState().clearSession();
+      return null;
+    }
+    if (!res.ok) return null;
+    const data = (await res.json()) as ShmooUploadResponse & { status?: string };
+    if (!data?.session_id || data.status === "empty") return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 /** Absolute URL for a Shmoo plot path returned by the API (`/api/shmoo/plot/...`). */
-export function resolveShmooPlotUrl(plotUrl: string): string {
-  if (plotUrl.startsWith("http")) return plotUrl;
-  const base = getApiBase();
-  if (plotUrl.startsWith("/api/") && base.endsWith("/api")) {
-    return `${base.replace(/\/api$/, "")}${plotUrl}`;
+export function resolveShmooPlotUrl(plotUrl: string, cacheKey?: string | null): string {
+  let url: string;
+  if (plotUrl.startsWith("http")) {
+    url = plotUrl;
+  } else {
+    const base = getApiBase();
+    if (plotUrl.startsWith("/api/") && base.endsWith("/api")) {
+      url = `${base.replace(/\/api$/, "")}${plotUrl}`;
+    } else if (plotUrl.startsWith("/")) {
+      const origin = base.replace(/\/api\/?$/, "");
+      url = `${origin}${plotUrl}`;
+    } else {
+      url = `${base}/${plotUrl.replace(/^\//, "")}`;
+    }
   }
-  if (plotUrl.startsWith("/")) {
-    const origin = base.replace(/\/api\/?$/, "");
-    return `${origin}${plotUrl}`;
+  if (cacheKey) {
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}v=${encodeURIComponent(cacheKey)}`;
   }
-  return `${base}/${plotUrl.replace(/^\//, "")}`;
+  return url;
 }
 
 export async function downloadShmooReport(

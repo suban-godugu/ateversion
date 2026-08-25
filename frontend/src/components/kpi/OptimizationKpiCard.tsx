@@ -2,7 +2,6 @@
 
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { SHMOO_CAPABILITIES } from "@/lib/kpiExternalPages";
-import { resolveShmooPlotUrl } from "@/services/api";
 import { formatNumber, formatTime } from "@/lib/utils";
 import type { Kpi } from "@/types/kpi";
 
@@ -13,26 +12,17 @@ export type ShmooCapabilityMetric = {
   unit: string;
 };
 
-export type ShmooCardPlot = {
-  key: string;
-  label: string;
-  src: string | null;
-};
-
 export interface OptimizationKpiCardProps {
   kpi: Kpi;
   onOpen?: (kpiId: string) => void;
   /** Embedded SHMOO capability metrics (shown on parent card only). */
   shmooMetrics?: ShmooCapabilityMetric[];
-  /** Live characterization / yield / debug plot thumbnails. */
-  shmooPlots?: ShmooCardPlot[];
 }
 
 export function OptimizationKpiCard({
   kpi,
   onOpen,
   shmooMetrics,
-  shmooPlots,
 }: OptimizationKpiCardProps) {
   const accent = kpi.accent ?? "#6EE7A8";
   const chartData = (kpi.history ?? []).map((p, i) => ({ i, v: p.value }));
@@ -113,40 +103,7 @@ export function OptimizationKpiCard({
         </div>
       )}
 
-      {isShmoo ? (
-        <div className="grid grid-cols-3 gap-1 pl-1">
-          {(shmooPlots?.length
-            ? shmooPlots
-            : [
-                { key: "yield", label: "Yield", src: null },
-                { key: "debug", label: "Debug", src: null },
-                { key: "character", label: "Character", src: null },
-              ]
-          ).map((plot) => (
-            <div
-              key={plot.key}
-              className="overflow-hidden rounded border border-[rgba(167,139,250,0.35)] bg-[#0a1220]"
-            >
-              <div className="border-b border-[rgba(167,139,250,0.2)] px-1 py-0.5 text-center text-[8px] font-semibold tracking-[0.04em] text-[#d4c4ff]">
-                {plot.label}
-              </div>
-              {plot.src ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={resolveShmooPlotUrl(plot.src)}
-                  alt={`${plot.label} shmoo plot`}
-                  className="h-[52px] w-full object-cover object-center"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="flex h-[52px] items-center justify-center px-1 text-center text-[8px] leading-tight text-[#7f96b0]">
-                  Upload Shmoo
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
+      {!isShmoo ? (
         <div className="h-[34px] w-full pl-1">
           {chartData.length > 1 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -163,7 +120,7 @@ export function OptimizationKpiCard({
             </ResponsiveContainer>
           ) : null}
         </div>
-      )}
+      ) : null}
 
       <div className="flex items-center justify-between pl-1 text-[10.5px] text-[#8fa6c0]">
         <span className="uppercase tracking-[0.08em]">{kpi.status.replaceAll("_", " ")}</span>

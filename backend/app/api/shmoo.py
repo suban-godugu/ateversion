@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.shmoo.service import (
     generate_shmoo_report,
+    get_latest_shmoo_summary,
     plot_path_for,
     process_shmoo_upload,
 )
@@ -49,6 +50,20 @@ async def upload_shmoo(
     )
     await db.commit()
     return {"status": "ok", **result}
+
+
+@router.get("/latest")
+async def latest_shmoo(
+    _: AuthUser = Depends(require_permissions(Permission.READ_KPIS)),
+) -> dict:
+    """
+    Latest Shmoo analysis for live KPI card hydration (plots + results).
+    Returns 404-style empty payload when nothing has been uploaded yet.
+    """
+    data = get_latest_shmoo_summary()
+    if not data:
+        return {"status": "empty", "session_id": None, "plot_urls": None, "results": None}
+    return {"status": "ok", **data}
 
 
 @router.get("/plot/{session_id}.png")
