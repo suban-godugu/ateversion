@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { uploadFloorFile, uploadShmooFile } from "@/services/api";
 import { useAuthStore } from "@/stores/authStore";
+import { useKpiStore } from "@/stores/kpiStore";
 import { useShmooStore } from "@/stores/shmooStore";
 
 type UploadKind = "auto" | "wafer_image" | "stil" | "stdf" | "log" | "shmoo";
@@ -57,6 +58,7 @@ export function UploadControl() {
   const role = useAuthStore((s) => s.role);
   const canUpload = useAuthStore((s) => s.hasPermission("write:telemetry"));
   const setShmooSession = useShmooStore((s) => s.setSession);
+  const selectKpi = useKpiStore((s) => s.selectKpi);
 
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<UploadKind>("auto");
@@ -129,10 +131,11 @@ export function UploadControl() {
           plotUrl: res.plot_url,
         });
         setMessage(
-          `Uploaded ${res.filename ?? file.name} · CV ${(res.results.cv_accuracy * 100).toFixed(1)}% · scrolled to Shmoo panel`,
+          `Uploaded ${res.filename ?? file.name} · CV ${(res.results.cv_accuracy * 100).toFixed(1)}% · open M-BIST SHMOO KPI`,
         );
         // Keep popover open so the filename/success stay visible.
-        scrollToSection("shmoo-optimization");
+        scrollToSection("optimization-parameters");
+        selectKpi("m_bist_shmoo");
       } else {
         const res = await uploadFloorFile(file, kind);
         const detail =
@@ -182,7 +185,7 @@ export function UploadControl() {
         Floor: wafer image, STDF/STIL, or test log. Optimization: Shmoo CSV/XLSX (VDD × Frequency).
       </p>
       <p className="mb-3 rounded border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-[10px] leading-relaxed text-[var(--muted-2)]">
-        <span className="text-[var(--cyan)]">Auto tip:</span> CSV/XLSX goes to Shmoo panel;
+        <span className="text-[var(--cyan)]">Auto tip:</span> CSV/XLSX opens M-BIST SHMOO KPI;
         images/logs go to wafer map
       </p>
 
@@ -248,11 +251,16 @@ export function UploadControl() {
             type="button"
             onClick={() => {
               setOpen(false);
-              scrollToSection(
-                message.toLowerCase().includes("shmoo") || message.toLowerCase().includes("cv ")
-                  ? "shmoo-optimization"
-                  : "live-wafer-map",
-              );
+              const isShmooResult =
+                message.toLowerCase().includes("shmoo") ||
+                message.toLowerCase().includes("cv ") ||
+                message.toLowerCase().includes("m-bist");
+              if (isShmooResult) {
+                scrollToSection("optimization-parameters");
+                selectKpi("m_bist_shmoo");
+              } else {
+                scrollToSection("live-wafer-map");
+              }
             }}
           >
             View results

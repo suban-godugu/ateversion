@@ -23,7 +23,7 @@ export const KPI_EXTERNAL_URLS: Record<string, string | undefined> = {
     "https://placeholder-pattern-count.vercel.app",
   m_bist_shmoo:
     process.env.NEXT_PUBLIC_KPI_M_BIST_SHMOO_URL ??
-    "https://placeholder-m-bist-shmoo.vercel.app",
+    "https://shmoo-vl.vercel.app",
 };
 
 export function getKpiExternalUrl(kpiId: string): string | undefined {

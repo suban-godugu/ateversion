@@ -13,7 +13,6 @@ import { HeaderStats } from "@/components/kpi/HeaderStats";
 import { OptimizationKpiGrid } from "@/components/kpi/OptimizationKpiGrid";
 import { DynamicTestLimits } from "@/components/limits/DynamicTestLimits";
 import { PredictiveMaintenanceCard } from "@/components/maintenance/PredictiveMaintenanceCard";
-import { ShmooOptimizationPanel } from "@/components/shmoo/ShmooOptimizationPanel";
 import { UploadControl } from "@/components/uploads/UploadControl";
 import { WaferMap } from "@/components/wafer/WaferMap";
 import { YieldSummary } from "@/components/wafer/YieldSummary";
@@ -95,11 +94,6 @@ export function DashboardShell() {
         <EnterpriseControls />
       </div>
 
-      {/* Shmoo results sit above the wafer map so uploads are immediately visible */}
-      <div className="vl-enter vl-enter-delay-2">
-        <ShmooOptimizationPanel />
-      </div>
-
       <section
         id="live-wafer-map"
         className="vl-surface-deep vl-enter vl-enter-delay-2 mb-[30px] grid grid-cols-1 gap-[26px] p-6 md:grid-cols-[340px_1fr]"
@@ -108,7 +102,9 @@ export function DashboardShell() {
         <YieldSummary wafer={wafer} />
       </section>
 
-      <div className="vl-section-title mb-3">Optimization Parameters</div>
+      <div id="optimization-parameters" className="vl-section-title mb-3 scroll-mt-6">
+        Optimization Parameters
+      </div>
       <div className="vl-enter vl-enter-delay-3">
         <OptimizationKpiGrid>
           <PredictiveMaintenanceCard />
