@@ -131,7 +131,7 @@ export function UploadControl() {
           plotUrl: res.plot_url,
         });
         setMessage(
-          `Uploaded ${res.filename ?? file.name} · CV ${(res.results.cv_accuracy * 100).toFixed(1)}% · open M-BIST SHMOO KPI`,
+          `Uploaded ${res.filename ?? file.name} · CV ${(res.results.cv_accuracy * 100).toFixed(1)}% · open SHMOO KPI`,
         );
         // Keep popover open so the filename/success stay visible.
         scrollToSection("optimization-parameters");
@@ -185,7 +185,7 @@ export function UploadControl() {
         Floor: wafer image, STDF/STIL, or test log. Optimization: Shmoo CSV/XLSX (VDD × Frequency).
       </p>
       <p className="mb-3 rounded border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-[10px] leading-relaxed text-[var(--muted-2)]">
-        <span className="text-[var(--cyan)]">Auto tip:</span> CSV/XLSX opens M-BIST SHMOO KPI;
+        <span className="text-[var(--cyan)]">Auto tip:</span> CSV/XLSX opens SHMOO ML KPI;
         images/logs go to wafer map
       </p>
 

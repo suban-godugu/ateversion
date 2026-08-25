@@ -21,6 +21,14 @@ const ORDER = [
   "m_bist_shmoo",
 ];
 
+const DISPLAY_NAMES: Record<string, string> = {
+  m_bist_shmoo: "SHMOO ML Optimization System",
+};
+
+function displayName(kpiId: string, fallback: string): string {
+  return DISPLAY_NAMES[kpiId] ?? fallback;
+}
+
 export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
   const { kpis, isLoading, isError, refetch } = useKpis();
   const selectedKpiId = useKpiStore((s) => s.selectedKpiId);
@@ -47,16 +55,24 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
   }
 
   const externalUrl = selectedKpiId ? getKpiExternalUrl(selectedKpiId) : undefined;
-  const selectedName =
-    (selectedKpiId && kpisById[selectedKpiId]?.name) ||
-    ordered.find((k) => k.id === selectedKpiId)?.name ||
-    "KPI";
+  const selectedName = selectedKpiId
+    ? displayName(
+        selectedKpiId,
+        (kpisById[selectedKpiId]?.name) ||
+          ordered.find((k) => k.id === selectedKpiId)?.name ||
+          "KPI",
+      )
+    : "KPI";
 
   return (
     <>
       <div className="mb-[26px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
         {ordered.map((kpi) => (
-          <OptimizationKpiCard key={kpi.id} kpi={kpi} onOpen={selectKpi} />
+          <OptimizationKpiCard
+            key={kpi.id}
+            kpi={{ ...kpi, name: displayName(kpi.id, kpi.name) }}
+            onOpen={selectKpi}
+          />
         ))}
         {children}
       </div>

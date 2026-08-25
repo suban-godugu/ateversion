@@ -127,7 +127,7 @@ KPI_DEFS = [
     },
     {
         "key": "m_bist_shmoo",
-        "title": "M-BIST SHMOO",
+        "title": "SHMOO ML Optimization System",
         "value": 18.7,
         "previous": 17.2,
         "unit": "%",
@@ -217,13 +217,20 @@ def _history_from_base(base: float, n: int = 24) -> tuple[list[float], list[dict
 
 
 async def ensure_missing_kpi_defs(db) -> int:
-    """Insert any KPI_DEFS rows that are missing (does not clear existing data)."""
+    """Insert missing KPI_DEFS rows and sync titles for existing ones."""
     from app.services.kpi_service import compute_improvement, compute_status, compute_trend
 
     added = 0
+    changed = False
     for defn in KPI_DEFS:
         existing = await db.get(KpiMetric, defn["key"])
         if existing is not None:
+            if existing.title != defn["title"]:
+                existing.title = defn["title"]
+                changed = True
+            if getattr(existing, "description", None) != defn.get("description"):
+                existing.description = defn.get("description")
+                changed = True
             continue
         value = float(defn["value"])
         previous = float(defn["previous"])
@@ -263,7 +270,8 @@ async def ensure_missing_kpi_defs(db) -> int:
                 )
             )
         added += 1
-    if added:
+        changed = True
+    if changed:
         await db.commit()
     return added
 
