@@ -1,6 +1,7 @@
 "use client";
 
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
+import { SHMOO_CAPABILITIES } from "@/lib/kpiExternalPages";
 import { formatNumber, formatTime } from "@/lib/utils";
 import type { Kpi } from "@/types/kpi";
 
@@ -13,6 +14,7 @@ export function OptimizationKpiCard({ kpi, onOpen }: OptimizationKpiCardProps) {
   const accent = kpi.accent ?? "#6EE7A8";
   const chartData = (kpi.history ?? []).map((p, i) => ({ i, v: p.value }));
   const digits = kpi.unit === "%" && kpi.value > 90 ? 2 : 1;
+  const isShmoo = kpi.id === "m_bist_shmoo";
 
   return (
     <button
@@ -48,10 +50,23 @@ export function OptimizationKpiCard({ kpi, onOpen }: OptimizationKpiCardProps) {
         <span className="ml-1 text-[14px] font-medium text-[#9eb6d0]">{kpi.unit}</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 pl-1 text-[11px]">
-        <Meta label="Target" value={`${formatNumber(kpi.target, digits)}${kpi.unit}`} />
-        <Meta label="Baseline" value={`${formatNumber(kpi.baseline, digits)}${kpi.unit}`} />
-      </div>
+      {isShmoo ? (
+        <div className="flex flex-wrap gap-1 pl-1">
+          {SHMOO_CAPABILITIES.map((cap) => (
+            <span
+              key={cap.id}
+              className="rounded border border-[rgba(167,139,250,0.35)] bg-[rgba(167,139,250,0.12)] px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.04em] text-[#d4c4ff]"
+            >
+              {cap.label}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 pl-1 text-[11px]">
+          <Meta label="Target" value={`${formatNumber(kpi.target, digits)}${kpi.unit}`} />
+          <Meta label="Baseline" value={`${formatNumber(kpi.baseline, digits)}${kpi.unit}`} />
+        </div>
+      )}
 
       <div className="h-[34px] w-full pl-1">
         {chartData.length > 1 ? (

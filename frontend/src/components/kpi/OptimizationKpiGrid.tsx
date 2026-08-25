@@ -6,6 +6,7 @@ import { LoadingState } from "@/components/common/LoadingState";
 import { ExternalKpiPopup } from "@/components/kpi/ExternalKpiPopup";
 import { KpiDetailDrawer } from "@/components/kpi/KpiDetailDrawer";
 import { OptimizationKpiCard } from "@/components/kpi/OptimizationKpiCard";
+import { ShmooKpiPopup } from "@/components/kpi/ShmooKpiPopup";
 import { getKpiExternalUrl } from "@/lib/kpiExternalPages";
 import { useKpis } from "@/hooks/useKpis";
 import { useKpiStore } from "@/stores/kpiStore";
@@ -19,18 +20,18 @@ const ORDER = [
   "vector_memory_optimization",
   "pattern_count_reduction",
   "m_bist_shmoo",
+];
+
+/** Legacy child KPI ids — hide if still present in an older DB. */
+const HIDDEN_KPI_IDS = new Set([
   "shmoo_yield_analysis",
   "shmoo_debugging",
   "shmoo_binning",
   "shmoo_characterization",
-];
+]);
 
 const DISPLAY_NAMES: Record<string, string> = {
   m_bist_shmoo: "SHMOO ML-Based Optimization",
-  shmoo_yield_analysis: "Yield Analysis",
-  shmoo_debugging: "Debugging",
-  shmoo_binning: "Binning",
-  shmoo_characterization: "Characterization",
 };
 
 function displayName(kpiId: string, fallback: string): string {
@@ -43,11 +44,13 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
   const selectKpi = useKpiStore((s) => s.selectKpi);
   const kpisById = useKpiStore((s) => s.kpisById);
 
-  const ordered = [...kpis].sort((a, b) => {
-    const ia = ORDER.indexOf(a.id);
-    const ib = ORDER.indexOf(b.id);
-    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-  });
+  const ordered = [...kpis]
+    .filter((k) => !HIDDEN_KPI_IDS.has(k.id))
+    .sort((a, b) => {
+      const ia = ORDER.indexOf(a.id);
+      const ib = ORDER.indexOf(b.id);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
 
   if (isLoading && ordered.length === 0) {
     return <LoadingState label="Loading optimization KPIs…" />;
@@ -66,7 +69,7 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
   const selectedName = selectedKpiId
     ? displayName(
         selectedKpiId,
-        (kpisById[selectedKpiId]?.name) ||
+        kpisById[selectedKpiId]?.name ||
           ordered.find((k) => k.id === selectedKpiId)?.name ||
           "KPI",
       )
@@ -84,7 +87,9 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
         ))}
         {children}
       </div>
-      {selectedKpiId && externalUrl ? (
+      {selectedKpiId === "m_bist_shmoo" ? (
+        <ShmooKpiPopup title={selectedName} onClose={() => selectKpi(null)} />
+      ) : selectedKpiId && externalUrl ? (
         <ExternalKpiPopup
           title={selectedName}
           url={externalUrl}

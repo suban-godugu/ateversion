@@ -2,9 +2,24 @@
  * External pages opened when an Optimization KPI card is clicked.
  * Replace via NEXT_PUBLIC_KPI_* env vars when needed.
  */
-const SHMOO_VL_BASE =
+export const SHMOO_VL_BASE =
   process.env.NEXT_PUBLIC_KPI_M_BIST_SHMOO_URL?.trim() ||
   "https://shmoo-vl.vercel.app";
+
+/** Capability tabs inside the single SHMOO ML-Based Optimization card popup. */
+export const SHMOO_CAPABILITIES = [
+  { id: "yield", label: "Yield Analysis", view: "yield" },
+  { id: "debug", label: "Debugging", view: "debug" },
+  { id: "binning", label: "Binning", view: "binning" },
+  { id: "character", label: "Characterization", view: "character" },
+] as const;
+
+export type ShmooCapabilityId = (typeof SHMOO_CAPABILITIES)[number]["id"];
+
+export function shmooCapabilityUrl(view: string): string {
+  const base = SHMOO_VL_BASE.replace(/\/$/, "");
+  return `${base}?view=${encodeURIComponent(view)}`;
+}
 
 export const KPI_EXTERNAL_URLS: Record<string, string | undefined> = {
   false_failure_reduction:
@@ -27,15 +42,6 @@ export const KPI_EXTERNAL_URLS: Record<string, string | undefined> = {
     process.env.NEXT_PUBLIC_KPI_PATTERN_COUNT_URL ??
     "https://placeholder-pattern-count.vercel.app",
   m_bist_shmoo: SHMOO_VL_BASE,
-  shmoo_yield_analysis:
-    process.env.NEXT_PUBLIC_KPI_SHMOO_YIELD_URL ?? `${SHMOO_VL_BASE}?view=yield`,
-  shmoo_debugging:
-    process.env.NEXT_PUBLIC_KPI_SHMOO_DEBUG_URL ?? `${SHMOO_VL_BASE}?view=debug`,
-  shmoo_binning:
-    process.env.NEXT_PUBLIC_KPI_SHMOO_BINNING_URL ?? `${SHMOO_VL_BASE}?view=binning`,
-  shmoo_characterization:
-    process.env.NEXT_PUBLIC_KPI_SHMOO_CHARACTER_URL ??
-    `${SHMOO_VL_BASE}?view=character`,
 };
 
 export function getKpiExternalUrl(kpiId: string): string | undefined {
