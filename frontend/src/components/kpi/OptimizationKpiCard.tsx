@@ -5,12 +5,25 @@ import { SHMOO_CAPABILITIES } from "@/lib/kpiExternalPages";
 import { formatNumber, formatTime } from "@/lib/utils";
 import type { Kpi } from "@/types/kpi";
 
+export type ShmooCapabilityMetric = {
+  id: string;
+  label: string;
+  value: number;
+  unit: string;
+};
+
 export interface OptimizationKpiCardProps {
   kpi: Kpi;
   onOpen?: (kpiId: string) => void;
+  /** Embedded SHMOO capability metrics (shown on parent card only). */
+  shmooMetrics?: ShmooCapabilityMetric[];
 }
 
-export function OptimizationKpiCard({ kpi, onOpen }: OptimizationKpiCardProps) {
+export function OptimizationKpiCard({
+  kpi,
+  onOpen,
+  shmooMetrics,
+}: OptimizationKpiCardProps) {
   const accent = kpi.accent ?? "#6EE7A8";
   const chartData = (kpi.history ?? []).map((p, i) => ({ i, v: p.value }));
   const digits = kpi.unit === "%" && kpi.value > 90 ? 2 : 1;
@@ -51,14 +64,36 @@ export function OptimizationKpiCard({ kpi, onOpen }: OptimizationKpiCardProps) {
       </div>
 
       {isShmoo ? (
-        <div className="flex flex-wrap gap-1 pl-1">
-          {SHMOO_CAPABILITIES.map((cap) => (
-            <span
-              key={cap.id}
-              className="rounded border border-[rgba(167,139,250,0.35)] bg-[rgba(167,139,250,0.12)] px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.04em] text-[#d4c4ff]"
+        <div className="grid grid-cols-2 gap-1.5 pl-1">
+          {(shmooMetrics?.length
+            ? shmooMetrics
+            : SHMOO_CAPABILITIES.map((c) => ({
+                id: c.id,
+                label: c.label,
+                value: Number.NaN,
+                unit: "%",
+              }))
+          ).map((m) => (
+            <div
+              key={m.id}
+              className="rounded border border-[rgba(167,139,250,0.35)] bg-[rgba(167,139,250,0.12)] px-2 py-1.5"
             >
-              {cap.label}
-            </span>
+              <div className="text-[9px] font-semibold tracking-[0.04em] text-[#d4c4ff]">
+                {m.label}
+              </div>
+              <div className="font-mono text-[13px] font-semibold text-white">
+                {Number.isFinite(m.value) ? (
+                  <>
+                    {formatNumber(m.value, m.value > 90 && m.unit === "%" ? 2 : 1)}
+                    <span className="ml-0.5 text-[10px] font-medium text-[#b8a4e8]">
+                      {m.unit}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[#9eb6d0]">—</span>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       ) : (

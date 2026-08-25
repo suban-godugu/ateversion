@@ -145,14 +145,33 @@ async def apply_shmoo_results_to_kpis(
     *,
     at: datetime | None = None,
 ) -> list[str]:
-    """Update the SHMOO ML-Based Optimization KPI from a Shmoo ML results dict."""
+    """Update SHMOO parent CV% and embedded capability metrics from ML results."""
     from app.ingestion.seed import ensure_missing_kpi_defs
 
     await ensure_missing_kpi_defs(db)
 
+    updated: list[str] = []
+    n_pass = float(results.get("n_pass") or 0)
+    n_fail = float(results.get("n_fail") or 0)
+    total = n_pass + n_fail
+    pass_rate = (n_pass / total * 100.0) if total > 0 else 0.0
+    fail_rate = (n_fail / total * 100.0) if total > 0 else 0.0
     cv_pct = float(results.get("cv_accuracy") or 0) * 100.0
-    m = await update_kpi_value(db, "m_bist_shmoo", round(cv_pct, 4), at=at)
-    return [m.key] if m else []
+    r2_pct = float(results.get("boundary_r2") or 0) * 100.0
+
+    mapping = {
+        "m_bist_shmoo": cv_pct,
+        "shmoo_yield_analysis": pass_rate,
+        "shmoo_debugging": fail_rate,
+        "shmoo_binning": pass_rate,  # proxy until multi-device binning API
+        "shmoo_characterization": r2_pct,
+    }
+    for key, value in mapping.items():
+        m = await update_kpi_value(db, key, round(value, 4), at=at)
+        if m:
+            updated.append(m.key)
+    return updated
+
 
 async def apply_kpi_updates_from_event(
     db: AsyncSession,

@@ -7,7 +7,7 @@ import { ExternalKpiPopup } from "@/components/kpi/ExternalKpiPopup";
 import { KpiDetailDrawer } from "@/components/kpi/KpiDetailDrawer";
 import { OptimizationKpiCard } from "@/components/kpi/OptimizationKpiCard";
 import { ShmooKpiPopup } from "@/components/kpi/ShmooKpiPopup";
-import { getKpiExternalUrl } from "@/lib/kpiExternalPages";
+import { getKpiExternalUrl, SHMOO_CAPABILITIES } from "@/lib/kpiExternalPages";
 import { useKpis } from "@/hooks/useKpis";
 import { useKpiStore } from "@/stores/kpiStore";
 
@@ -75,6 +75,16 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
       )
     : "KPI";
 
+  const shmooMetrics = SHMOO_CAPABILITIES.map((cap) => {
+    const metric = kpisById[cap.metricKpiId] ?? kpis.find((k) => k.id === cap.metricKpiId);
+    return {
+      id: cap.id,
+      label: cap.label,
+      value: metric?.value ?? Number.NaN,
+      unit: metric?.unit ?? "%",
+    };
+  });
+
   return (
     <>
       <div className="mb-[26px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
@@ -83,12 +93,17 @@ export function OptimizationKpiGrid({ children }: { children?: ReactNode }) {
             key={kpi.id}
             kpi={{ ...kpi, name: displayName(kpi.id, kpi.name) }}
             onOpen={selectKpi}
+            shmooMetrics={kpi.id === "m_bist_shmoo" ? shmooMetrics : undefined}
           />
         ))}
         {children}
       </div>
       {selectedKpiId === "m_bist_shmoo" ? (
-        <ShmooKpiPopup title={selectedName} onClose={() => selectKpi(null)} />
+        <ShmooKpiPopup
+          title={selectedName}
+          metrics={shmooMetrics}
+          onClose={() => selectKpi(null)}
+        />
       ) : selectedKpiId && externalUrl ? (
         <ExternalKpiPopup
           title={selectedName}

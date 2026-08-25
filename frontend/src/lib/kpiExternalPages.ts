@@ -6,12 +6,32 @@ export const SHMOO_VL_BASE =
   process.env.NEXT_PUBLIC_KPI_M_BIST_SHMOO_URL?.trim() ||
   "https://shmoo-vl.vercel.app";
 
-/** Capability tabs inside the single SHMOO ML-Based Optimization card popup. */
+/** Capability tabs + embedded metric ids (hidden KPIs powering the parent card). */
 export const SHMOO_CAPABILITIES = [
-  { id: "yield", label: "Yield Analysis", view: "yield" },
-  { id: "debug", label: "Debugging", view: "debug" },
-  { id: "binning", label: "Binning", view: "binning" },
-  { id: "character", label: "Characterization", view: "character" },
+  {
+    id: "yield",
+    label: "Yield Analysis",
+    view: "yield",
+    metricKpiId: "shmoo_yield_analysis",
+  },
+  {
+    id: "debug",
+    label: "Debugging",
+    view: "debug",
+    metricKpiId: "shmoo_debugging",
+  },
+  {
+    id: "binning",
+    label: "Binning",
+    view: "binning",
+    metricKpiId: "shmoo_binning",
+  },
+  {
+    id: "character",
+    label: "Characterization",
+    view: "character",
+    metricKpiId: "shmoo_characterization",
+  },
 ] as const;
 
 export type ShmooCapabilityId = (typeof SHMOO_CAPABILITIES)[number]["id"];

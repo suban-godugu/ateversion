@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { DetailPopup } from "@/components/common/DetailPopup";
+import type { ShmooCapabilityMetric } from "@/components/kpi/OptimizationKpiCard";
 import {
   SHMOO_CAPABILITIES,
   SHMOO_VL_BASE,
   shmooCapabilityUrl,
   type ShmooCapabilityId,
 } from "@/lib/kpiExternalPages";
+import { formatNumber } from "@/lib/utils";
 
 /**
  * Single SHMOO ML-Based Optimization popup with capability tabs
@@ -16,10 +18,12 @@ import {
 export function ShmooKpiPopup({
   title,
   onClose,
+  metrics,
   initialCapability = "yield",
 }: {
   title: string;
   onClose: () => void;
+  metrics?: ShmooCapabilityMetric[];
   initialCapability?: ShmooCapabilityId;
 }) {
   const [active, setActive] = useState<ShmooCapabilityId>(initialCapability);
@@ -28,6 +32,7 @@ export function ShmooKpiPopup({
   const capability =
     SHMOO_CAPABILITIES.find((c) => c.id === active) ?? SHMOO_CAPABILITIES[0];
   const url = shmooCapabilityUrl(capability.view);
+  const activeMetric = metrics?.find((m) => m.id === active);
 
   useEffect(() => {
     setLoaded(false);
@@ -38,18 +43,32 @@ export function ShmooKpiPopup({
       <div className="mb-3 flex flex-wrap gap-1.5">
         {SHMOO_CAPABILITIES.map((cap) => {
           const selected = cap.id === active;
+          const metric = metrics?.find((m) => m.id === cap.id);
           return (
             <button
               key={cap.id}
               type="button"
               onClick={() => setActive(cap.id)}
-              className={`rounded-[6px] border px-2.5 py-1 text-[11px] font-semibold tracking-[0.02em] transition-colors ${
+              className={`rounded-[6px] border px-2.5 py-1 text-left transition-colors ${
                 selected
                   ? "border-[var(--cyan)] bg-[rgba(107,193,242,0.2)] text-white"
                   : "border-[rgba(107,193,242,0.28)] bg-[rgba(107,193,242,0.06)] text-[#9eb6d0] hover:border-[var(--cyan)] hover:text-white"
               }`}
             >
-              {cap.label}
+              <div className="text-[11px] font-semibold tracking-[0.02em]">{cap.label}</div>
+              <div className="font-mono text-[12px] font-semibold">
+                {metric && Number.isFinite(metric.value) ? (
+                  <>
+                    {formatNumber(
+                      metric.value,
+                      metric.value > 90 && metric.unit === "%" ? 2 : 1,
+                    )}
+                    <span className="ml-0.5 text-[10px] opacity-80">{metric.unit}</span>
+                  </>
+                ) : (
+                  "—"
+                )}
+              </div>
             </button>
           );
         })}
@@ -57,8 +76,20 @@ export function ShmooKpiPopup({
 
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <p className="text-[11px] text-[var(--muted)]">
-          Viewing <span className="font-semibold text-[#c9e6ff]">{capability.label}</span> in
-          SHMOO ML
+          Viewing <span className="font-semibold text-[#c9e6ff]">{capability.label}</span>
+          {activeMetric && Number.isFinite(activeMetric.value) ? (
+            <>
+              {" "}
+              ·{" "}
+              <span className="font-mono text-[#c9e6ff]">
+                {formatNumber(
+                  activeMetric.value,
+                  activeMetric.value > 90 && activeMetric.unit === "%" ? 2 : 1,
+                )}
+                {activeMetric.unit}
+              </span>
+            </>
+          ) : null}
         </p>
         <a
           href={url}
