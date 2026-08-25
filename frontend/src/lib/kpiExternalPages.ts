@@ -12,7 +12,8 @@ export const KPI_EXTERNAL_URLS: Record<string, string | undefined> = {
   yield_improvement:
     process.env.NEXT_PUBLIC_KPI_YIELD_URL ?? "https://placeholder-yield.vercel.app",
   retest_reduction:
-    process.env.NEXT_PUBLIC_KPI_RETEST_URL ?? "https://placeholder-retest.vercel.app",
+    process.env.NEXT_PUBLIC_KPI_RETEST_URL ??
+    "https://ate-retest-benefit-prediction-ai-n9yvp4wajm9yeq4vwfzhmq.streamlit.app",
   escape_prevention:
     process.env.NEXT_PUBLIC_KPI_ESCAPE_URL ?? "https://placeholder-escape.vercel.app",
   vector_memory_optimization:
